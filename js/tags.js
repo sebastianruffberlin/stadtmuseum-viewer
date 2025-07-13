@@ -14,7 +14,6 @@ function Tags() {
   var wordBackground;
   var keywordsNestGlobal;
 
-  // var filterWords = ["Potsdam"];
   var filterWords = [];
   var data, filteredData;
   var activeWord;
@@ -41,7 +40,6 @@ function Tags() {
       .classed("tagcloud", true)
       .style("color", config.style.fontColor)
       .append("div");
-    //.attr("transform", "translate("+ margin.left +","+ margin.top +")")
 
     tags.update();
   };
@@ -72,9 +70,6 @@ function Tags() {
         d.highlight = matches.length == filterWords.length && search;
       else d.active = matches.length == filterWords.length && search;
     });
-
-    // var anzahl = data.filter(function(d){ return d.active; }).length;
-    // c("anzahl", anzahl)
   };
 
   tags.update = function () {
@@ -82,7 +77,6 @@ function Tags() {
     tags.filter(filterWords);
 
     var keywords = [];
-    // var topographisch = [];
     data.forEach(function (d) {
       if (d.active) {
         d.keywords.forEach(function (keyword) {
@@ -92,8 +86,6 @@ function Tags() {
     });
 
     var filterWordsReverse = filterWords.map((d) => d).reverse();
-
-    var getBiggest = function (arr) {};
 
     keywordsNestGlobal = d3
       .nest()
@@ -106,58 +98,40 @@ function Tags() {
         });
       })
       .entries(keywords)
-      // .sort(function (a, b) {
-      //   return b.values.length - a.values.length;
-      // })
       .sort(function (a, b) {
-        // var a1 = a.key.indexOf(":") === -1;
-        // var b1 = b.key.indexOf(":") === -1;
-
         var y1 = d3.max(a.values.map((d) => +d.year));
         var y2 = d3.max(b.values.map((d) => +d.year));
-        // console.log(y1, y2);
         return d3.descending(y1, y2);
       })
       .filter((d) => {
         if (filterWords.length === 0) {
-          return d.key.indexOf(":") === -1;
+          return d.key.indexOf(">") === -1; // GEÄNDERT
         } else {
           if (filterWords.map((f) => d.key === f).length == filterWords.length)
             return true;
-          else if (d.key.indexOf(":") === -1) return true;
+          else if (d.key.indexOf(">") === -1) return true; // GEÄNDERT
           else return false;
         }
       })
       .map((d) => {
         var out = d.key;
         filterWordsReverse.forEach((f) => {
-          if (f != out) out = out.replace(f + ":", "");
+          if (f != out) out = out.replace(f + ">", ""); // GEÄNDERT
         });
         d.display = out;
-        // console.log(filterWordsReverse, d.key, out)
-
         return d;
       })
-      .filter((d) => d.display.indexOf(":") == -1 || filterWords.length == 0);
-
-    // console.log(filterWordsReverse, keywordsNestGlobal);
+      .filter((d) => d.display.indexOf(">") == -1 || filterWords.length == 0); // GEÄNDERT
 
     var sliceNum = parseInt(sliceScale(width));
 
-    // c("num",sliceNum)
-
     var keywordsNest = keywordsNestGlobal
-      // .sort(function (a, b) {
-      //   return d3.descending(a.values[0].year, b.values[0].year);
-      // })
       .slice(0, sliceNum)
       .sort(function (a, b) {
         return d3.ascending(a.key, b.key);
       });
 
     console.log("keywordsNest", keywordsNest);
-
-    // c("keywordsNest", keywordsNest);
 
     var keywordsExtent = d3.extent(keywordsNest, function (d) {
       return d.values.length;
@@ -191,8 +165,6 @@ function Tags() {
   }
 
   tags.draw = function (words) {
-    // c(words)
-
     var select = container.selectAll(".tag").data(words, function (d) {
       return d.display;
     });
@@ -201,8 +173,6 @@ function Tags() {
       .classed("active", function (d) {
         return filterWords.indexOf(d.key) > -1;
       })
-      // .transition()
-      // .duration(1000)
       .style("transform", function (d, i) {
         return "translate(" + d.x + "px,0px) rotate(45deg)";
       })
@@ -210,16 +180,6 @@ function Tags() {
         return keywordsScale(d.values.length) + "px";
       })
       .style("opacity", 1);
-    // .filter(function(d){ return filterWords.indexOf(d.key) > -1; })
-    //   .style("color", config.style.fontColorActive)
-    //   .style("background", config.style.fontBackground)
-    // .selectAll(".close div")
-    //   .style("background-color", config.style.fontColorActive)
-    //.text(function(d) { return d.key; })
-
-    // select.select("div")
-    //   .text(function(d) { return d.key; })
-    // .style("opacity", function(d){ return keywordsOpacityScale(d.values.length); })
 
     var e = select
       .enter()
@@ -241,13 +201,6 @@ function Tags() {
     });
 
     e.append("div").classed("close", true);
-    // .attr("data-attr", config.style.fontColorActive)
-    // e.append("div")
-    //   .text(function(d) { return d.key; })
-    // .style("transform", function(d,i){ return "rotate(90deg)"; })
-    // .attr("dx", 25)
-    // .attr("dy", 5)
-    // .style("opacity", function(d){ return keywordsOpacityScale(d.values.length); })
 
     e.transition()
       .delay(400)
@@ -262,11 +215,7 @@ function Tags() {
 
     select
       .exit()
-      // .transition()
-      // .duration(500)
       .style("opacity", 0)
-      // .transition()
-      // .duration(500)
       .remove();
 
     if (words.length === 0) return;
@@ -282,8 +231,6 @@ function Tags() {
     filterWords = [];
     tags.update();
     tags.highlightWords(filterWords);
-    // canvas.highlight();
-    // canvas.project()
   };
 
   tags.mouseclick = function (d) {
@@ -294,14 +241,12 @@ function Tags() {
       _.remove(filterWords, function (d2) {
         return d2 == d.key;
       });
-      // if hierarchical keywords, could turn those into an array instead of strings
-      if (d.key.indexOf(":")) {
+      if (d.key.indexOf(">")) { // GEÄNDERT
         filterWords = filterWords.filter((f) => !f.startsWith(d.key));
       }
     } else {
       filterWords.push(d.key);
     }
-    // c(filterWords);
 
     tags.update();
     tags.highlightWords(filterWords);
