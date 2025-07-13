@@ -1,0 +1,81 @@
+{
+  "project": {
+    "name": "Stadtmuseum Viewer",
+    "quality": 1
+  },
+  "loader": {
+    "info": "data/info.md",
+    "items": "data/data.csv",
+    "timeline": "data/timeline.csv",
+    "layouts": [
+      {
+        "title": "Zeitleiste",
+        "type": "group",
+        "groupKey": "year"
+      },
+      {
+        "title": "Farben",
+        "file": "data/colors.csv"
+      },
+      {
+        "title": "Ähnlichkeit (Grid)",
+        "type": "grid",
+        "file": "data/tsne.csv"
+      },
+      {
+        "title": "Ähnlichkeit (Blasen)",
+        "file": "data/tsne.csv"
+      },
+      {
+        "title": "Karte",
+        "type": "mapbox"
+      }
+    ],
+    "textures": {
+      "medium": {
+        "size": 200,
+        "url": "data/sprites/spritesheet.json"
+      },
+      "detail": {
+        "size": 1024,
+        "url": "data/1024/"
+      }
+    }
+  },
+  "style": {
+    "canvasBackground": "#ffffff",
+    "timelineBackground": "#f8f4e9"
+  },
+  "projection": {
+    "columns": 3
+  },
+  "detail": {
+    "structure": [
+      {
+        "name": "Titel",
+        "source": "_Titel",
+        "type": "text"
+      },
+      {
+        "name": "Künstler:in",
+        "source": "_Künstler:in",
+        "type": "text"
+      },
+      {
+        "name": "Datierung",
+        "source": "yearExact",
+        "type": "text"
+      },
+      {
+        "name": "Technik",
+        "source": "_Techniken",
+        "type": "text"
+      },
+      {
+        "name": "Inventarnummer",
+        "source": "_Inventarnummer",
+        "type": "text"
+      }
+    ]
+  }
+}
