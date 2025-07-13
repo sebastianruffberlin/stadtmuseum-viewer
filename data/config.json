@@ -3,6 +3,7 @@
     "name": "Stadtmuseum Viewer",
     "quality": 1
   },
+  "delimiter": ";",
   "loader": {
     "info": "data/info.md",
     "items": "data/data.csv",
