@@ -1,176 +1,79 @@
 {
   "project": {
     "name": "Stadtmuseum Viewer",
-    "quality": 1,
-    "multiple": false
-},
+    "quality": 1
+  },
   "loader": {
-    "info": "/data/info.md",
-    "timeline": "/data/timeline.csv",
+    "info": "data/info.md",
     "items": "data/data.csv",
+    "timeline": "data/timeline.csv",
     "layouts": [
-        {
-            "title": "Time"
-        },
-        {
-            "title": "Similarity",
-            "url": "/data/tsne.csv"
-        }
+      {
+        "title": "Zeitleiste",
+        "type": "group",
+        "groupKey": "year"
+      },
+      {
+        "title": "Farben",
+        "file": "data/colors.csv"
+      },
+      {
+        "title": "Ähnlichkeit (Grid)",
+        "type": "grid",
+        "file": "data/tsne.csv"
+      },
+      {
+        "title": "Ähnlichkeit (Blasen)",
+        "file": "data/tsne.csv"
+      },
+      {
+        "title": "Karte",
+        "type": "mapbox"
+      }
     ],
     "textures": {
       "medium": {
-        "size": 256,
-        "url": "sprites/spritesheet.json"
+        "size": 200,
+        "url": "data/sprites/spritesheet.json"
       },
       "detail": {
         "size": 1024,
-        "url": "https://vikusviewer.fh-potsdam.de/data/vangogh/1024/"
-      },
-      "big": {
-        "size": 4096,
-        "url": "https://vikusviewer.fh-potsdam.de/data/vangogh/4096/"
+        "url": "data/1024/"
       }
     }
   },
   "style": {
-    "fontColor": "#505454",
-    "fontColorActive": "#ffffff",
-    "fontBackground": "#505454",
-    "textShadow": "none",
-    "canvasBackground": "#fdfeff",
-    "timelineBackground": "#fdfeff",
-    "timelineFontColor": "#505454",
-    "backgroundHeader": "#035151",
-    "fontColorHeader": "#fffefa",
-    "detailBackground": "#fdfeff",
-    "sidebarInverted": true,
-    "infoBackground": "#fdfeff",
-    "infoFontColor": "#505454",
-    "searchbarBackground": "#9da2a7"
+    "canvasBackground": "#ffffff",
+    "timelineBackground": "#f8f4e9"
   },
   "projection": {
-    "columns": 100
+    "columns": 3
   },
   "detail": {
     "structure": [
       {
-        "name": "title",
-        "source": "_mTitle",
-        "display": "wide",
+        "name": "Titel",
+        "source": "_Titel",
         "type": "text"
       },
       {
-        "name": "text",
-        "source": "_mText",
-        "display": "wide",
+        "name": "Künstler:in",
+        "source": "_Künstler:in",
         "type": "text"
       },
       {
-        "name": "show",
-        "source": "_mShow",
-        "display": "wide",
+        "name": "Datierung",
+        "source": "yearExact",
         "type": "text"
       },
       {
-        "name": "keywords",
-        "source": "_keywords",
-        "display": "column",
-        "type": "array"
-      },
-      {
-        "name": "strategy",
-        "source": "_strategy",
-        "display": "column",
+        "name": "Technik",
+        "source": "_Techniken",
         "type": "text"
       },
       {
-        "name": "cultural context",
-        "source": "_mCulturalContext",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "tone",
-        "source": "_mTone",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "concern",
-        "source": "_mConcern",
-        "display": "column",
-        "type": "text"
-      },
-      { 
-        "name": "lettering style",
-        "source": "_mLetteringStyle",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "contains",
-        "source": "_mContains",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "made",
-        "source": "_mMade",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "id",
-        "source": "_id",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "additional notes",
-        "source": "_mAdditionalNotes",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "additional keywords",
-        "source": "_mAdditionalKeywords",
-        "display": "column",
-        "type": "text"
-      },  
-      {
-        "name": "notes intent",
-        "source": "_mNotesIntent",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "signed",
-        "source": "_mSigned",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "additional theme",
-        "source": "_mAdditionalTheme",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "notes image and text",
-        "source": "_mNotesImageAndText",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "labels",
-        "source": "_labels",
-        "display": "column",
-        "type": "text"
-      },
-      {
-        "name": "logos",
-        "source": "_logos",
-        "display": "column",
+        "name": "Inventarnummer",
+        "source": "_Inventarnummer",
         "type": "text"
       }
     ]
