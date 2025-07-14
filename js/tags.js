@@ -305,9 +305,39 @@ function Tags() {
     lock = true;
 
     if (filterWords.indexOf(d.key) > -1) {
+      // Filter entfernen
       _.remove(filterWords, function (d2) {
         return d2 == d.key;
       });
+      
+      // Wenn es eine Oberkategorie war, entferne auch alle zugehörigen Unterkategorien
+      // Prüfe ob d.key eine Oberkategorie ist (enthält kein '>')
+      if (d.key.indexOf('>') === -1) {
+        var topCategory = d.key;
+        // Entferne alle Unterkategorien, die zu dieser Oberkategorie gehören
+        // Das sind die Strings, die als Unterkategorien dieser Oberkategorie auftreten können
+        var subCategoriesOfThisTop = [];
+        
+        // Sammle alle möglichen Unterkategorien dieser Oberkategorie
+        data.forEach(function(dataItem) {
+          dataItem.keywords.forEach(function(keyword) {
+            if (keyword.startsWith(topCategory + '>')) {
+              var parts = keyword.split('>');
+              if (parts.length === 2) {
+                var subCat = parts[1];
+                if (subCategoriesOfThisTop.indexOf(subCat) === -1) {
+                  subCategoriesOfThisTop.push(subCat);
+                }
+              }
+            }
+          });
+        });
+        
+        // Entferne alle diese Unterkategorien aus filterWords
+        _.remove(filterWords, function(filterWord) {
+          return subCategoriesOfThisTop.indexOf(filterWord) > -1;
+        });
+      }
     } else {
       filterWords.push(d.key);
     }
