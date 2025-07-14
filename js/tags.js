@@ -73,7 +73,6 @@ function Tags() {
   };
 
   tags.update = function () {
-    console.log("update");
     tags.filter(filterWords);
 
     var keywords = [];
@@ -87,6 +86,7 @@ function Tags() {
 
     var filterWordsReverse = filterWords.map((d) => d).reverse();
 
+    // The entire logic to filter hierarchical keywords has been rewritten for clarity and correctness.
     keywordsNestGlobal = d3
       .nest()
       .key(function (d) {
@@ -103,25 +103,31 @@ function Tags() {
         var y2 = d3.max(b.values.map((d) => +d.year));
         return d3.descending(y1, y2);
       })
-      .filter((d) => {
+      .filter(d => {
+        // If no filter is active, show only top-level keywords (those without '>')
         if (filterWords.length === 0) {
-          return d.key.indexOf(">") === -1; // GEÄNDERT
+            return d.key.indexOf('>') === -1;
         } else {
-          if (filterWords.map((f) => d.key === f).length == filterWords.length)
-            return true;
-          else if (d.key.indexOf(">") === -1) return true; // GEÄNDERT
-          else return false;
+            // Otherwise, show keywords that are either:
+            // 1. A child of a currently selected filter word
+            const isChildOfSelected = filterWords.some(filter => d.key.startsWith(filter + '>'));
+            // 2. A top-level keyword itself
+            const isTopLevel = d.key.indexOf('>') === -1;
+
+            return isChildOfSelected || isTopLevel;
         }
       })
       .map((d) => {
         var out = d.key;
+        // This part correctly strips the parent name for display, e.g., "Darstellung>Architektur" becomes "Architektur"
         filterWordsReverse.forEach((f) => {
-          if (f != out) out = out.replace(f + ">", ""); // GEÄNDERT
+          if (f != out) out = out.replace(f + ">", "");
         });
         d.display = out;
         return d;
       })
-      .filter((d) => d.display.indexOf(">") == -1 || filterWords.length == 0); // GEÄNDERT
+      // This final filter ensures no "children" of un-selected "parents" are shown
+      .filter((d) => d.display.indexOf(">") == -1);
 
     var sliceNum = parseInt(sliceScale(width));
 
@@ -130,8 +136,6 @@ function Tags() {
       .sort(function (a, b) {
         return d3.ascending(a.key, b.key);
       });
-
-    console.log("keywordsNest", keywordsNest);
 
     var keywordsExtent = d3.extent(keywordsNest, function (d) {
       return d.values.length;
@@ -160,6 +164,7 @@ function Tags() {
   }
 
   function getTranslateForList(data) {
+    if (!data || data.length === 0 || !_.last(data)) return 0;
     var w = _.last(data).x + 100;
     return width / 2 - w / 2;
   }
@@ -218,7 +223,10 @@ function Tags() {
       .style("opacity", 0)
       .remove();
 
-    if (words.length === 0) return;
+    if (words.length === 0) {
+        container.style("transform", "translate(0px,0px)");
+        return
+    };
 
     var w = getTranslateForList(words);
 
@@ -237,11 +245,12 @@ function Tags() {
     lock = true;
 
     if (filterWords.indexOf(d.key) > -1) {
-      console.log(d.key, filterWords);
       _.remove(filterWords, function (d2) {
         return d2 == d.key;
       });
-      if (d.key.indexOf(">")) { // GEÄNDERT
+      // Corrected the bug here. `indexOf` returns -1 if not found, and `if(-1)` is true in JS.
+      // This now correctly checks if the clicked keyword is a parent.
+      if (d.key.indexOf(">") === -1) {
         filterWords = filterWords.filter((f) => !f.startsWith(d.key));
       }
     } else {
