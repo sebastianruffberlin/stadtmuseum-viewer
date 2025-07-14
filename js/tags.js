@@ -89,13 +89,22 @@ function Tags() {
     });
 
     console.log("Tags Update - Gefundene Keywords:", keywords.length);
+    console.log("Tags Update - Beispiel Keywords:", keywords.slice(0, 5).map(k => k.keyword));
 
     var filterWordsReverse = filterWords.map((d) => d).reverse();
 
+    // Vereinfachte Logik: Extrahiere Top-Level Kategorien
     keywordsNestGlobal = d3
       .nest()
       .key(function (d) {
-        return d.keyword;
+        // Extrahiere nur den Teil vor dem ">" für Top-Level Kategorien
+        var keyword = d.keyword;
+        if (filterWords.length === 0) {
+          // Zeige nur Top-Level Kategorien (vor dem ">")
+          return keyword.split('>')[0];
+        } else {
+          return keyword;
+        }
       })
       .rollup(function (d) {
         return d.map(function (d) {
@@ -107,29 +116,16 @@ function Tags() {
         var y1 = d3.max(a.values.map((d) => +d.year));
         var y2 = d3.max(b.values.map((d) => +d.year));
         return d3.descending(y1, y2);
-      })
-      .filter((d) => {
-        if (filterWords.length === 0) {
-          // Zeige nur Top-Level Keywords (ohne ">")
-          return d.key.indexOf(">") === -1;
-        } else {
-          if (filterWords.map((f) => d.key === f).length == filterWords.length)
-            return true;
-          else if (d.key.indexOf(">") === -1) return true;
-          else return false;
-        }
-      })
-      .map((d) => {
-        var out = d.key;
-        filterWordsReverse.forEach((f) => {
-          if (f != out) out = out.replace(f + ">", "");
-        });
-        d.display = out;
-        return d;
-      })
-      .filter((d) => d.display.indexOf(">") == -1 || filterWords.length == 0);
+      });
 
-    console.log("keywordsNestGlobal nach Filterung:", keywordsNestGlobal.length);
+    // Setze Display-Namen
+    keywordsNestGlobal = keywordsNestGlobal.map((d) => {
+      d.display = d.key;
+      return d;
+    });
+
+    console.log("keywordsNestGlobal nach Verarbeitung:", keywordsNestGlobal.length);
+    console.log("Erste 5 Kategorien:", keywordsNestGlobal.slice(0, 5).map(k => k.key));
 
     var sliceNum = parseInt(sliceScale(width));
 
@@ -252,10 +248,6 @@ function Tags() {
       _.remove(filterWords, function (d2) {
         return d2 == d.key;
       });
-      // Für hierarchische Keywords mit ">"
-      if (d.key.indexOf(">") !== -1) {
-        filterWords = filterWords.filter((f) => !f.startsWith(d.key));
-      }
     } else {
       filterWords.push(d.key);
     }
