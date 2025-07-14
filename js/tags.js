@@ -84,7 +84,19 @@ function Tags() {
     data.forEach(function (d) {
       if (d.active) {
         d.keywords.forEach(function (keyword) {
-          keywords.push({ keyword: keyword, data: d });
+          // Nur Keywords hinzufügen, die zum Filter passen
+          if (filterWords.length === 0) {
+            // Ohne Filter: alle Keywords
+            keywords.push({ keyword: keyword, data: d });
+          } else {
+            // Mit Filter: nur Keywords die zum Filter gehören
+            var matchesFilter = filterWords.some(function(filterWord) {
+              return keyword === filterWord || keyword.startsWith(filterWord + '>');
+            });
+            if (matchesFilter) {
+              keywords.push({ keyword: keyword, data: d });
+            }
+          }
         });
       }
     });
@@ -98,18 +110,28 @@ function Tags() {
     keywordsNestGlobal = d3
       .nest()
       .key(function (d) {
-        // Extrahiere nur den Teil vor dem ">" für Top-Level Kategorien
         var keyword = d.keyword;
         if (filterWords.length === 0) {
           // Zeige nur Top-Level Kategorien (vor dem ">")
           return keyword.split('>')[0];
         } else {
-          // Wenn Filter aktiv ist, zeige die Unterkategorien
+          // Wenn Filter aktiv ist, zeige SOWOHL Oberkategorien ALS AUCH Unterkategorien
           var parts = keyword.split('>');
-          if (parts.length > 1) {
-            return parts[1]; // Zeige den Teil nach dem ">"
+          
+          // Prüfe ob dieses Keyword zu einem aktiven Filter gehört
+          var belongsToActiveFilter = filterWords.some(function(filterWord) {
+            return keyword === filterWord || keyword.startsWith(filterWord + '>');
+          });
+          
+          if (belongsToActiveFilter && parts.length > 1) {
+            // Für gefilterte hierarchische Keywords: zeige Unterkategorie
+            return parts[1]; 
+          } else if (filterWords.indexOf(keyword.split('>')[0]) > -1) {
+            // Für die Oberkategorie selbst: behalte sie
+            return parts[0];
           } else {
-            return keyword;
+            // Für alle anderen: zeige Oberkategorie
+            return parts[0];
           }
         }
       })
@@ -124,6 +146,37 @@ function Tags() {
         var y2 = d3.max(b.values.map((d) => +d.year));
         return d3.descending(y1, y2);
       });
+
+    // Füge die Oberkategorien explizit hinzu wenn Filter aktiv sind
+    if (filterWords.length > 0) {
+      filterWords.forEach(function(filterWord) {
+        // Prüfe ob die Oberkategorie bereits in der Liste ist
+        var categoryExists = keywordsNestGlobal.some(function(item) {
+          return item.key === filterWord;
+        });
+        
+        if (!categoryExists) {
+          // Erstelle einen Eintrag für die Oberkategorie
+          var categoryData = [];
+          data.forEach(function(d) {
+            if (d.active) {
+              d.keywords.forEach(function(keyword) {
+                if (keyword.startsWith(filterWord + '>') || keyword === filterWord) {
+                  categoryData.push(d);
+                }
+              });
+            }
+          });
+          
+          if (categoryData.length > 0) {
+            keywordsNestGlobal.unshift({
+              key: filterWord,
+              values: categoryData
+            });
+          }
+        }
+      });
+    }
 
     // Setze Display-Namen
     keywordsNestGlobal = keywordsNestGlobal.map((d) => {
