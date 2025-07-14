@@ -34,11 +34,15 @@ function Tags() {
     console.log("Tags Init - Datenanzahl:", data.length);
     console.log("Tags Init - Erste Keywords:", data[0].keywords);
 
+    // Dynamische Breite, mindestens 1200px für ausreichend Platz
+    width = Math.max(window.innerWidth - margin.left - margin.right, 1200);
+
     container = d3
       .select(".page")
       .append("div")
       .style("width", width + margin.left + margin.right)
       .style("height", height + margin.top + margin.bottom)
+      .style("overflow-x", "auto") // Horizontales Scrollen falls nötig
       .classed("tagcloud", true)
       .style("color", config.style.fontColor)
       .append("div");
@@ -50,8 +54,9 @@ function Tags() {
   tags.resize = function () {
     if (!state.init) return;
 
-    (width = window.innerWidth - margin.left - margin.right),
-      (height = 400 - margin.top - margin.bottom);
+    // Dynamische Breite ohne feste Grenzen
+    width = Math.max(window.innerWidth - margin.left - margin.right, 1200);
+    height = 400 - margin.top - margin.bottom;
 
     container
       .style("width", width + margin.left + margin.right)
@@ -231,20 +236,44 @@ function Tags() {
   };
 
   function layout(data) {
-    var p = 1.8;
-    var p2 = 1;
+    var p = 2.5; // Mehr Platz zwischen Tags
+    var p2 = 15; // Mehr Basis-Abstand
+    var groupSpacing = 30; // Mehr Abstand zwischen Gruppen
     var x0 = 0;
+    var lastTopLevel = null;
 
-    data.forEach(function (d) {
-      d.x = x0 + keywordsScale(d.values.length) * p + p2;
-      x0 += keywordsScale(d.values.length) * p;
+    data.forEach(function (d, i) {
+      // Extra Abstand vor neuen Oberkategorien (außer der ersten)
+      if (d.isTopLevel && lastTopLevel !== null) {
+        x0 += groupSpacing;
+      }
+      
+      // Berechne die Textbreite grob (approximation)
+      var textWidth = d.display.length * (keywordsScale(d.values.length) * 0.6);
+      
+      d.x = x0;
+      x0 += Math.max(textWidth + p2, keywordsScale(d.values.length) * p + p2);
+      
+      if (d.isTopLevel) {
+        lastTopLevel = d;
+      }
     });
   }
 
   function getTranslateForList(data) {
     if (!data || data.length === 0 || !_.last(data)) return 0;
-    var w = _.last(data).x + 100;
-    return width / 2 - w / 2;
+    
+    // Berechne die tatsächliche Breite der Tag-Liste
+    var lastTag = _.last(data);
+    var lastTagWidth = lastTag.display.length * (keywordsScale(lastTag.values.length) * 0.6);
+    var totalWidth = lastTag.x + lastTagWidth + 50; // Extra Puffer
+    
+    // Zentriere nur wenn die Liste schmaler als der Container ist
+    if (totalWidth < width) {
+      return (width - totalWidth) / 2;
+    }
+    
+    return 0; // Keine Zentrierung wenn zu breit
   }
 
   tags.draw = function (words) {
@@ -258,11 +287,20 @@ function Tags() {
       .classed("active", function (d) {
         return filterWords.indexOf(d.key) > -1;
       })
+      .classed("top-level", function (d) {
+        return d.isTopLevel;
+      })
+      .classed("sub-category", function (d) {
+        return !d.isTopLevel;
+      })
       .style("transform", function (d, i) {
         return "translate(" + d.x + "px,0px) rotate(45deg)";
       })
       .style("font-size", function (d) {
         return keywordsScale(d.values.length) + "px";
+      })
+      .style("font-weight", function (d) {
+        return d.isTopLevel ? "bold" : "normal";
       })
       .style("opacity", 1);
 
@@ -270,6 +308,12 @@ function Tags() {
       .enter()
       .append("div")
       .classed("tag", true)
+      .classed("top-level", function (d) {
+        return d.isTopLevel;
+      })
+      .classed("sub-category", function (d) {
+        return !d.isTopLevel;
+      })
       .on("mouseenter", tags.mouseenter)
       .on("mouseleave", tags.mouseleave)
       .on("click", tags.mouseclick)
@@ -278,6 +322,9 @@ function Tags() {
       })
       .style("font-size", function (d) {
         return keywordsScale(d.values.length) + "px";
+      })
+      .style("font-weight", function (d) {
+        return d.isTopLevel ? "bold" : "normal";
       })
       .style("opacity", 0);
 
