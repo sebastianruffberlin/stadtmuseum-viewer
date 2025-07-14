@@ -111,62 +111,57 @@ function Tags() {
 
     var filterWordsReverse = filterWords.map((d) => d).reverse();
 
-    // Schritt 1: Erstelle immer alle Oberkategorien
+    // Schritt 1: Erstelle Oberkategorien basierend auf gefilterten Daten
+    // Verwende Keywords von aktiven Objekten, damit Oberkategorien bereits gefiltert sind
     var topLevelCategories = d3
       .nest()
       .key(function (d) {
-        return d.keyword.split('>')[0]; // Immer Oberkategorie
+        return d.keyword.split('>')[0]; // Oberkategorie
       })
       .rollup(function (d) {
         return d.map(function (d) {
           return d.data;
         });
       })
-      .entries(keywords)
+      .entries(keywords) // keywords enthält bereits nur Keywords von aktiven Objekten
       .sort(function (a, b) {
         var y1 = d3.max(a.values.map((d) => +d.year));
         var y2 = d3.max(b.values.map((d) => +d.year));
         return d3.descending(y1, y2);
       });
 
-    // Schritt 2: Erstelle Unterkategorien nur für ausgewählte Filter
+    // Schritt 2: Erstelle Unterkategorien für aktive Oberkategorien
     var subCategories = [];
     if (filterWords.length > 0) {
-      var filteredKeywords = [];
-      data.forEach(function (d) {
-        if (d.active) {
-          d.keywords.forEach(function (keyword) {
-            // Nur Keywords die zum Filter gehören
-            var matchesFilter = filterWords.some(function(filterWord) {
-              return keyword === filterWord || keyword.startsWith(filterWord + '>');
-            });
-            if (matchesFilter) {
-              filteredKeywords.push({ keyword: keyword, data: d });
-            }
-          });
+      // Für jede aktive Oberkategorie Unterkategorien erstellen
+      filterWords.forEach(function(activeTopCategory) {
+        // Finde alle Keywords dieser Oberkategorie in den bereits gefilterten Daten
+        var keywordsForThisTop = keywords.filter(function(item) {
+          return item.keyword.startsWith(activeTopCategory + '>');
+        });
+        
+        if (keywordsForThisTop.length > 0) {
+          var subCatsForThisTop = d3
+            .nest()
+            .key(function (d) {
+              var parts = d.keyword.split('>');
+              return parts.length > 1 ? parts[1] : null;
+            })
+            .rollup(function (d) {
+              return d.map(function (d) {
+                return d.data;
+              });
+            })
+            .entries(keywordsForThisTop)
+            .filter(function(d) { return d.key !== null; });
+            
+          subCategories = subCategories.concat(subCatsForThisTop);
         }
       });
-
-      subCategories = d3
-        .nest()
-        .key(function (d) {
-          var parts = d.keyword.split('>');
-          if (parts.length > 1) {
-            return parts[1]; // Unterkategorie
-          } else {
-            return null; // Überspringe Oberkategorien hier
-          }
-        })
-        .rollup(function (d) {
-          return d.map(function (d) {
-            return d.data;
-          });
-        })
-        .entries(filteredKeywords)
-        .filter(function(d) { return d.key !== null; }) // Entferne null-Werte
-        .sort(function (a, b) {
-          return d3.ascending(a.key, b.key); // Unterkategorien alphabetisch
-        });
+      
+      subCategories.sort(function (a, b) {
+        return d3.ascending(a.key, b.key); // Unterkategorien alphabetisch
+      });
     }
 
     // Schritt 3: Kombiniere Ober- und Unterkategorien
@@ -182,7 +177,7 @@ function Tags() {
       });
     });
     
-    // Dann Unterkategorien hinzufügen (falls Filter aktiv)
+    // Dann Unterkategorien hinzufügen (nur wenn entsprechende Oberkategorie aktiv)
     subCategories.forEach(function(subCat) {
       keywordsNestGlobal.push({
         key: subCat.key,
