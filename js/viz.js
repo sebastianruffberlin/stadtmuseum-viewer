@@ -64,6 +64,7 @@ function init() {
         console.log(data);
 
         utils.clean(data, config.delimiter);
+        console.log("Daten nach Bereinigung:", data);
         
         if(config.filter && config.filter.type === "crossfilter") {
           tags = Crossfilter();
