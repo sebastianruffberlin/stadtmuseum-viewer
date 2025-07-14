@@ -1,0 +1,1394 @@
+{
+  "meta": {
+    "type": "sharpsheet",
+    "version": "1",
+    "app": "https://github.com/cpietsch/sharpsheet"
+  },
+  "spritesheets": [
+    {
+      "image": "sprite-1024-0.jpg",
+      "sprites": [
+        {
+          "name": "VII_65_1443_x",
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "dimension": {
+            "w": 104,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_61_454_x",
+          "position": {
+            "x": 107,
+            "y": 1
+          },
+          "dimension": {
+            "w": 98,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_60_527_x",
+          "position": {
+            "x": 207,
+            "y": 1
+          },
+          "dimension": {
+            "w": 105,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_60_111_x",
+          "position": {
+            "x": 314,
+            "y": 1
+          },
+          "dimension": {
+            "w": 114,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_806_x",
+          "position": {
+            "x": 430,
+            "y": 1
+          },
+          "dimension": {
+            "w": 99,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_777_x",
+          "position": {
+            "x": 531,
+            "y": 1
+          },
+          "dimension": {
+            "w": 110,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_745_x",
+          "position": {
+            "x": 643,
+            "y": 1
+          },
+          "dimension": {
+            "w": 127,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_742_x",
+          "position": {
+            "x": 772,
+            "y": 1
+          },
+          "dimension": {
+            "w": 85,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_463_x",
+          "position": {
+            "x": 859,
+            "y": 1
+          },
+          "dimension": {
+            "w": 106,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_261_x",
+          "position": {
+            "x": 1,
+            "y": 131
+          },
+          "dimension": {
+            "w": 92,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_259_x",
+          "position": {
+            "x": 95,
+            "y": 131
+          },
+          "dimension": {
+            "w": 79,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_59_235_x",
+          "position": {
+            "x": 176,
+            "y": 131
+          },
+          "dimension": {
+            "w": 93,
+            "h": 128
+          }
+        },
+        {
+          "name": "GS_08_5_GM",
+          "position": {
+            "x": 271,
+            "y": 131
+          },
+          "dimension": {
+            "w": 94,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_91_11",
+          "position": {
+            "x": 367,
+            "y": 131
+          },
+          "dimension": {
+            "w": 104,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_89_11",
+          "position": {
+            "x": 473,
+            "y": 131
+          },
+          "dimension": {
+            "w": 116,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_88_9",
+          "position": {
+            "x": 591,
+            "y": 131
+          },
+          "dimension": {
+            "w": 102,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_88_41",
+          "position": {
+            "x": 695,
+            "y": 131
+          },
+          "dimension": {
+            "w": 111,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_87_2",
+          "position": {
+            "x": 808,
+            "y": 131
+          },
+          "dimension": {
+            "w": 105,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_86_54",
+          "position": {
+            "x": 915,
+            "y": 131
+          },
+          "dimension": {
+            "w": 103,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_85_2",
+          "position": {
+            "x": 1,
+            "y": 261
+          },
+          "dimension": {
+            "w": 102,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_84_9",
+          "position": {
+            "x": 105,
+            "y": 261
+          },
+          "dimension": {
+            "w": 88,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_84_1",
+          "position": {
+            "x": 195,
+            "y": 261
+          },
+          "dimension": {
+            "w": 104,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_81_8",
+          "position": {
+            "x": 301,
+            "y": 261
+          },
+          "dimension": {
+            "w": 92,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_80_32",
+          "position": {
+            "x": 395,
+            "y": 261
+          },
+          "dimension": {
+            "w": 93,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_74_11",
+          "position": {
+            "x": 490,
+            "y": 261
+          },
+          "dimension": {
+            "w": 88,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_74_10",
+          "position": {
+            "x": 580,
+            "y": 261
+          },
+          "dimension": {
+            "w": 91,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_73_13",
+          "position": {
+            "x": 673,
+            "y": 261
+          },
+          "dimension": {
+            "w": 104,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_71_5",
+          "position": {
+            "x": 779,
+            "y": 261
+          },
+          "dimension": {
+            "w": 88,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_70_2",
+          "position": {
+            "x": 869,
+            "y": 261
+          },
+          "dimension": {
+            "w": 110,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_66_3",
+          "position": {
+            "x": 1,
+            "y": 391
+          },
+          "dimension": {
+            "w": 93,
+            "h": 128
+          }
+        },
+        {
+          "name": "GEM_66_12",
+          "position": {
+            "x": 96,
+            "y": 391
+          },
+          "dimension": {
+            "w": 103,
+            "h": 128
+          }
+        },
+        {
+          "name": "VII_60_411_x",
+          "position": {
+            "x": 201,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 112
+          }
+        },
+        {
+          "name": "GEM_89_10",
+          "position": {
+            "x": 331,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 112
+          }
+        },
+        {
+          "name": "GEM_75_5",
+          "position": {
+            "x": 461,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 112
+          }
+        },
+        {
+          "name": "GEM_68_53",
+          "position": {
+            "x": 591,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 111
+          }
+        },
+        {
+          "name": "GEM_66_21",
+          "position": {
+            "x": 721,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 111
+          }
+        },
+        {
+          "name": "GEM_73_2",
+          "position": {
+            "x": 851,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 110
+          }
+        },
+        {
+          "name": "GEM_66_22",
+          "position": {
+            "x": 1,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 110
+          }
+        },
+        {
+          "name": "GEM_64_9",
+          "position": {
+            "x": 131,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 110
+          }
+        },
+        {
+          "name": "VII_59_950_x",
+          "position": {
+            "x": 261,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 109
+          }
+        },
+        {
+          "name": "SM_2011-2687",
+          "position": {
+            "x": 391,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 109
+          }
+        },
+        {
+          "name": "GEM_80_17",
+          "position": {
+            "x": 521,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 108
+          }
+        },
+        {
+          "name": "GEM_80_3",
+          "position": {
+            "x": 651,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 106
+          }
+        },
+        {
+          "name": "GEM_72_16",
+          "position": {
+            "x": 781,
+            "y": 521
+          },
+          "dimension": {
+            "w": 128,
+            "h": 106
+          }
+        },
+        {
+          "name": "GEM_69_26",
+          "position": {
+            "x": 1,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 106
+          }
+        },
+        {
+          "name": "GEM_64_3",
+          "position": {
+            "x": 131,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 106
+          }
+        },
+        {
+          "name": "VII_60_286_x",
+          "position": {
+            "x": 261,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 104
+          }
+        },
+        {
+          "name": "GEM_75_20",
+          "position": {
+            "x": 391,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 104
+          }
+        },
+        {
+          "name": "GEM_81_12",
+          "position": {
+            "x": 521,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 103
+          }
+        },
+        {
+          "name": "GEM_72_10",
+          "position": {
+            "x": 651,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 103
+          }
+        },
+        {
+          "name": "GEM_68_14",
+          "position": {
+            "x": 781,
+            "y": 633
+          },
+          "dimension": {
+            "w": 128,
+            "h": 103
+          }
+        },
+        {
+          "name": "VII_59_761_x",
+          "position": {
+            "x": 1,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 102
+          }
+        },
+        {
+          "name": "VII_60_282_x",
+          "position": {
+            "x": 131,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 101
+          }
+        },
+        {
+          "name": "VII_60_110_x",
+          "position": {
+            "x": 261,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 101
+          }
+        },
+        {
+          "name": "VII_59_804_x",
+          "position": {
+            "x": 391,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 101
+          }
+        },
+        {
+          "name": "GEM_89_25",
+          "position": {
+            "x": 521,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 101
+          }
+        },
+        {
+          "name": "GEM_80_7",
+          "position": {
+            "x": 651,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 101
+          }
+        },
+        {
+          "name": "GEM_67_2",
+          "position": {
+            "x": 781,
+            "y": 741
+          },
+          "dimension": {
+            "w": 128,
+            "h": 101
+          }
+        },
+        {
+          "name": "VII_59_775_x",
+          "position": {
+            "x": 1,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 100
+          }
+        },
+        {
+          "name": "GEM_75_7",
+          "position": {
+            "x": 131,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 100
+          }
+        },
+        {
+          "name": "GEM_68_25",
+          "position": {
+            "x": 261,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 100
+          }
+        },
+        {
+          "name": "VII_60_662_x",
+          "position": {
+            "x": 391,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 99
+          }
+        },
+        {
+          "name": "VII_60_132_x",
+          "position": {
+            "x": 521,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 99
+          }
+        },
+        {
+          "name": "VII_59_869_x",
+          "position": {
+            "x": 651,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 99
+          }
+        },
+        {
+          "name": "VII_59_830_x",
+          "position": {
+            "x": 781,
+            "y": 845
+          },
+          "dimension": {
+            "w": 128,
+            "h": 99
+          }
+        },
+        {
+          "name": "VII_60_273_x",
+          "position": {
+            "x": 1,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 74
+          }
+        },
+        {
+          "name": "GEM_86_35",
+          "position": {
+            "x": 131,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 74
+          }
+        },
+        {
+          "name": "VII_59_515_x",
+          "position": {
+            "x": 261,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 73
+          }
+        },
+        {
+          "name": "VII_59_512_x",
+          "position": {
+            "x": 391,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 71
+          }
+        },
+        {
+          "name": "VII_59_514_x",
+          "position": {
+            "x": 521,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 70
+          }
+        },
+        {
+          "name": "VII_59_513_x",
+          "position": {
+            "x": 651,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 69
+          }
+        },
+        {
+          "name": "GEM_69_17",
+          "position": {
+            "x": 781,
+            "y": 947
+          },
+          "dimension": {
+            "w": 128,
+            "h": 65
+          }
+        }
+      ]
+    },
+    {
+      "image": "sprite-1024-1.jpg",
+      "sprites": [
+        {
+          "name": "VII_59_809_x",
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 99
+          }
+        },
+        {
+          "name": "GEM_89_24",
+          "position": {
+            "x": 131,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 99
+          }
+        },
+        {
+          "name": "VII_95_95_x",
+          "position": {
+            "x": 261,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 98
+          }
+        },
+        {
+          "name": "VII_59_841_x",
+          "position": {
+            "x": 391,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 98
+          }
+        },
+        {
+          "name": "GEM_81_1",
+          "position": {
+            "x": 521,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 98
+          }
+        },
+        {
+          "name": "GEM_78_1",
+          "position": {
+            "x": 651,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 98
+          }
+        },
+        {
+          "name": "VII_59_758_x",
+          "position": {
+            "x": 781,
+            "y": 1
+          },
+          "dimension": {
+            "w": 128,
+            "h": 97
+          }
+        },
+        {
+          "name": "VII_59_234_x",
+          "position": {
+            "x": 1,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 96
+          }
+        },
+        {
+          "name": "SM_2012-1240_KOU",
+          "position": {
+            "x": 131,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 96
+          }
+        },
+        {
+          "name": "GS_08_2_GM",
+          "position": {
+            "x": 261,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 96
+          }
+        },
+        {
+          "name": "GEM_76_10",
+          "position": {
+            "x": 391,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 96
+          }
+        },
+        {
+          "name": "VII_61_703_x",
+          "position": {
+            "x": 521,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 95
+          }
+        },
+        {
+          "name": "VII_59_483_x",
+          "position": {
+            "x": 651,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 95
+          }
+        },
+        {
+          "name": "GEM_80_2",
+          "position": {
+            "x": 781,
+            "y": 102
+          },
+          "dimension": {
+            "w": 128,
+            "h": 95
+          }
+        },
+        {
+          "name": "GEM_70_3",
+          "position": {
+            "x": 1,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 95
+          }
+        },
+        {
+          "name": "VII_59_940_x",
+          "position": {
+            "x": 131,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 94
+          }
+        },
+        {
+          "name": "VII_59_773_x",
+          "position": {
+            "x": 261,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 94
+          }
+        },
+        {
+          "name": "VII_59_744_x",
+          "position": {
+            "x": 391,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 94
+          }
+        },
+        {
+          "name": "VII_60_203_x",
+          "position": {
+            "x": 521,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "VII_60_165_x",
+          "position": {
+            "x": 651,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "VII_59_267_x",
+          "position": {
+            "x": 781,
+            "y": 200
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "VII_59_237_x",
+          "position": {
+            "x": 1,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "SM_2018-09251",
+          "position": {
+            "x": 131,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "GS_98_2_GM",
+          "position": {
+            "x": 261,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "GEM_76_31",
+          "position": {
+            "x": 391,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "GEM_75_19",
+          "position": {
+            "x": 521,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 92
+          }
+        },
+        {
+          "name": "GEM_79_44",
+          "position": {
+            "x": 651,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 91
+          }
+        },
+        {
+          "name": "GEM_74_4",
+          "position": {
+            "x": 781,
+            "y": 297
+          },
+          "dimension": {
+            "w": 128,
+            "h": 91
+          }
+        },
+        {
+          "name": "VII_75_130_x",
+          "position": {
+            "x": 1,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 90
+          }
+        },
+        {
+          "name": "VII_59_849_x",
+          "position": {
+            "x": 131,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 90
+          }
+        },
+        {
+          "name": "GEM_88_14",
+          "position": {
+            "x": 261,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 90
+          }
+        },
+        {
+          "name": "GEM_87_8",
+          "position": {
+            "x": 391,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 90
+          }
+        },
+        {
+          "name": "GEM_86_6",
+          "position": {
+            "x": 521,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 90
+          }
+        },
+        {
+          "name": "GS_07_35_GM",
+          "position": {
+            "x": 651,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 89
+          }
+        },
+        {
+          "name": "GEM_88_7",
+          "position": {
+            "x": 781,
+            "y": 391
+          },
+          "dimension": {
+            "w": 128,
+            "h": 89
+          }
+        },
+        {
+          "name": "GEM_68_43",
+          "position": {
+            "x": 1,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 89
+          }
+        },
+        {
+          "name": "VII_59_749_x",
+          "position": {
+            "x": 131,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 87
+          }
+        },
+        {
+          "name": "VII_59_433_x",
+          "position": {
+            "x": 261,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 87
+          }
+        },
+        {
+          "name": "GEM_65_3",
+          "position": {
+            "x": 391,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 87
+          }
+        },
+        {
+          "name": "VII_77_1_x",
+          "position": {
+            "x": 521,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 86
+          }
+        },
+        {
+          "name": "GEM_93_6",
+          "position": {
+            "x": 651,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 86
+          }
+        },
+        {
+          "name": "VII_59_249_x",
+          "position": {
+            "x": 781,
+            "y": 483
+          },
+          "dimension": {
+            "w": 128,
+            "h": 85
+          }
+        },
+        {
+          "name": "GEM_71_1",
+          "position": {
+            "x": 1,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 85
+          }
+        },
+        {
+          "name": "VII_62_195_x",
+          "position": {
+            "x": 131,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 82
+          }
+        },
+        {
+          "name": "GEM_86_15",
+          "position": {
+            "x": 261,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 82
+          }
+        },
+        {
+          "name": "GEM_86_14",
+          "position": {
+            "x": 391,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 82
+          }
+        },
+        {
+          "name": "VII_59_497_x",
+          "position": {
+            "x": 521,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 81
+          }
+        },
+        {
+          "name": "SM_2012-0158",
+          "position": {
+            "x": 651,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 81
+          }
+        },
+        {
+          "name": "GEM_78_5",
+          "position": {
+            "x": 781,
+            "y": 574
+          },
+          "dimension": {
+            "w": 128,
+            "h": 81
+          }
+        },
+        {
+          "name": "GS_2000_28_GM",
+          "position": {
+            "x": 1,
+            "y": 661
+          },
+          "dimension": {
+            "w": 128,
+            "h": 80
+          }
+        },
+        {
+          "name": "GEM_84_2",
+          "position": {
+            "x": 131,
+            "y": 661
+          },
+          "dimension": {
+            "w": 128,
+            "h": 80
+          }
+        },
+        {
+          "name": "GEM_88_4",
+          "position": {
+            "x": 261,
+            "y": 661
+          },
+          "dimension": {
+            "w": 128,
+            "h": 79
+          }
+        },
+        {
+          "name": "VII_59_747_x",
+          "position": {
+            "x": 391,
+            "y": 661
+          },
+          "dimension": {
+            "w": 128,
+            "h": 77
+          }
+        }
+      ]
+    }
+  ]
+}
