@@ -67,7 +67,8 @@ function Tags() {
       var search =
         state.search !== "" ? d.search.indexOf(state.search) > -1 : true;
       var matches = filterWords.filter(function (word) {
-        return d.keywords.filter((d) => d == word).length;
+        // Prüfe ob ein Keyword mit dem filterWord beginnt (für Hierarchie)
+        return d.keywords.filter((keyword) => keyword === word || keyword.startsWith(word + '>')).length;
       });
       if (highlight)
         d.highlight = matches.length == filterWords.length && search;
@@ -103,7 +104,13 @@ function Tags() {
           // Zeige nur Top-Level Kategorien (vor dem ">")
           return keyword.split('>')[0];
         } else {
-          return keyword;
+          // Wenn Filter aktiv ist, zeige die Unterkategorien
+          var parts = keyword.split('>');
+          if (parts.length > 1) {
+            return parts[1]; // Zeige den Teil nach dem ">"
+          } else {
+            return keyword;
+          }
         }
       })
       .rollup(function (d) {
