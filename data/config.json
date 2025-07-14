@@ -18,9 +18,9 @@
         "scale": 1.2
       },
       {
-        "title": "Grid",
-        "url": "data/tsne.csv",
-        "scale": 0.9
+        "title": "Colors",
+        "url": "data/colors.csv",
+        "scale": 1.0
       }
     ],
     "textures": {
