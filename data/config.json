@@ -19,12 +19,7 @@
         "file": "data/colors.csv"
       },
       {
-        "title": "Grid",
-        "type": "grid",
-        "file": "data/tsne.csv"
-      },
-      {
-        "title": "Bubbles",
+        "title": "Similarity",
         "file": "data/tsne.csv"
       },
       {
