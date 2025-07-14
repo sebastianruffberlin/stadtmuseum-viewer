@@ -66,13 +66,30 @@ function Tags() {
     data.forEach(function (d) {
       var search =
         state.search !== "" ? d.search.indexOf(state.search) > -1 : true;
-      var matches = filterWords.filter(function (word) {
-        // Prüfe ob ein Keyword mit dem filterWord beginnt (für Hierarchie)
-        return d.keywords.filter((keyword) => keyword === word || keyword.startsWith(word + '>')).length;
-      });
-      if (highlight)
-        d.highlight = matches.length == filterWords.length && search;
-      else d.active = matches.length == filterWords.length && search;
+      
+      if (filterWords.length === 0) {
+        // Ohne Filter: alle Objekte aktiv
+        if (highlight) d.highlight = search;
+        else d.active = search;
+      } else {
+        // Mit Filter: prüfe ob das Objekt alle Filterbedingungen erfüllt
+        var matches = filterWords.filter(function (word) {
+          return d.keywords.some(function(keyword) {
+            // Match wenn:
+            // 1. Exakte Übereinstimmung (z.B. "Stil" === "Stil")
+            // 2. Hierarchische Übereinstimmung (z.B. "Stil>Realism" beginnt mit "Stil>")
+            // 3. Unterkategorie-Match (z.B. "Browns" in "Hauptfarbe>Browns")
+            return keyword === word || 
+                   keyword.startsWith(word + '>') ||
+                   keyword.endsWith('>' + word);
+          });
+        });
+        
+        if (highlight)
+          d.highlight = matches.length == filterWords.length && search;
+        else 
+          d.active = matches.length == filterWords.length && search;
+      }
     });
   };
 
@@ -84,19 +101,7 @@ function Tags() {
     data.forEach(function (d) {
       if (d.active) {
         d.keywords.forEach(function (keyword) {
-          // Nur Keywords hinzufügen, die zum Filter passen
-          if (filterWords.length === 0) {
-            // Ohne Filter: alle Keywords
-            keywords.push({ keyword: keyword, data: d });
-          } else {
-            // Mit Filter: nur Keywords die zum Filter gehören
-            var matchesFilter = filterWords.some(function(filterWord) {
-              return keyword === filterWord || keyword.startsWith(filterWord + '>');
-            });
-            if (matchesFilter) {
-              keywords.push({ keyword: keyword, data: d });
-            }
-          }
+          keywords.push({ keyword: keyword, data: d });
         });
       }
     });
@@ -106,34 +111,11 @@ function Tags() {
 
     var filterWordsReverse = filterWords.map((d) => d).reverse();
 
-    // Vereinfachte Logik: Extrahiere Top-Level Kategorien
-    keywordsNestGlobal = d3
+    // Schritt 1: Erstelle immer alle Oberkategorien
+    var topLevelCategories = d3
       .nest()
       .key(function (d) {
-        var keyword = d.keyword;
-        if (filterWords.length === 0) {
-          // Zeige nur Top-Level Kategorien (vor dem ">")
-          return keyword.split('>')[0];
-        } else {
-          // Wenn Filter aktiv ist, zeige SOWOHL Oberkategorien ALS AUCH Unterkategorien
-          var parts = keyword.split('>');
-          
-          // Prüfe ob dieses Keyword zu einem aktiven Filter gehört
-          var belongsToActiveFilter = filterWords.some(function(filterWord) {
-            return keyword === filterWord || keyword.startsWith(filterWord + '>');
-          });
-          
-          if (belongsToActiveFilter && parts.length > 1) {
-            // Für gefilterte hierarchische Keywords: zeige Unterkategorie
-            return parts[1]; 
-          } else if (filterWords.indexOf(keyword.split('>')[0]) > -1) {
-            // Für die Oberkategorie selbst: behalte sie
-            return parts[0];
-          } else {
-            // Für alle anderen: zeige Oberkategorie
-            return parts[0];
-          }
-        }
+        return d.keyword.split('>')[0]; // Immer Oberkategorie
       })
       .rollup(function (d) {
         return d.map(function (d) {
@@ -147,41 +129,67 @@ function Tags() {
         return d3.descending(y1, y2);
       });
 
-    // Füge die Oberkategorien explizit hinzu wenn Filter aktiv sind
+    // Schritt 2: Erstelle Unterkategorien nur für ausgewählte Filter
+    var subCategories = [];
     if (filterWords.length > 0) {
-      filterWords.forEach(function(filterWord) {
-        // Prüfe ob die Oberkategorie bereits in der Liste ist
-        var categoryExists = keywordsNestGlobal.some(function(item) {
-          return item.key === filterWord;
-        });
-        
-        if (!categoryExists) {
-          // Erstelle einen Eintrag für die Oberkategorie
-          var categoryData = [];
-          data.forEach(function(d) {
-            if (d.active) {
-              d.keywords.forEach(function(keyword) {
-                if (keyword.startsWith(filterWord + '>') || keyword === filterWord) {
-                  categoryData.push(d);
-                }
-              });
+      var filteredKeywords = [];
+      data.forEach(function (d) {
+        if (d.active) {
+          d.keywords.forEach(function (keyword) {
+            // Nur Keywords die zum Filter gehören
+            var matchesFilter = filterWords.some(function(filterWord) {
+              return keyword === filterWord || keyword.startsWith(filterWord + '>');
+            });
+            if (matchesFilter) {
+              filteredKeywords.push({ keyword: keyword, data: d });
             }
           });
-          
-          if (categoryData.length > 0) {
-            keywordsNestGlobal.unshift({
-              key: filterWord,
-              values: categoryData
-            });
-          }
         }
       });
+
+      subCategories = d3
+        .nest()
+        .key(function (d) {
+          var parts = d.keyword.split('>');
+          if (parts.length > 1) {
+            return parts[1]; // Unterkategorie
+          } else {
+            return null; // Überspringe Oberkategorien hier
+          }
+        })
+        .rollup(function (d) {
+          return d.map(function (d) {
+            return d.data;
+          });
+        })
+        .entries(filteredKeywords)
+        .filter(function(d) { return d.key !== null; }) // Entferne null-Werte
+        .sort(function (a, b) {
+          return d3.ascending(a.key, b.key); // Unterkategorien alphabetisch
+        });
     }
 
-    // Setze Display-Namen
-    keywordsNestGlobal = keywordsNestGlobal.map((d) => {
-      d.display = d.key;
-      return d;
+    // Schritt 3: Kombiniere Ober- und Unterkategorien
+    keywordsNestGlobal = [];
+    
+    // Erst alle Oberkategorien hinzufügen
+    topLevelCategories.forEach(function(topCat) {
+      keywordsNestGlobal.push({
+        key: topCat.key,
+        display: topCat.key,
+        values: topCat.values,
+        isTopLevel: true
+      });
+    });
+    
+    // Dann Unterkategorien hinzufügen (falls Filter aktiv)
+    subCategories.forEach(function(subCat) {
+      keywordsNestGlobal.push({
+        key: subCat.key,
+        display: subCat.key,
+        values: subCat.values,
+        isTopLevel: false
+      });
     });
 
     console.log("keywordsNestGlobal nach Verarbeitung:", keywordsNestGlobal.length);
@@ -190,10 +198,7 @@ function Tags() {
     var sliceNum = parseInt(sliceScale(width));
 
     var keywordsNest = keywordsNestGlobal
-      .slice(0, sliceNum)
-      .sort(function (a, b) {
-        return d3.ascending(a.key, b.key);
-      });
+      .slice(0, sliceNum);
 
     console.log("keywordsNest für Display:", keywordsNest.length);
     console.log("keywordsNest", keywordsNest);
