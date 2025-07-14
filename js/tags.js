@@ -105,13 +105,15 @@ function Tags() {
       })
       .filter((d) => {
         if (filterWords.length === 0) {
-          // Zeige nur Top-Level Keywords (ohne ">")
+          // OHNE Filter: Zeige nur Oberkategorien (Wörter ohne ">")
           return d.key.indexOf(">") === -1;
         } else {
-          if (filterWords.map((f) => d.key === f).length == filterWords.length)
-            return true;
-          else if (d.key.indexOf(">") === -1) return true;
-          else return false;
+          // MIT Filter: Zeige sowohl Oberkategorien als auch zugehörige Unterkategorien
+          var isTopLevel = d.key.indexOf(">") === -1;
+          var belongsToFilter = filterWords.some(function(filter) {
+            return d.key === filter || d.key.startsWith(filter + ">");
+          });
+          return isTopLevel || belongsToFilter;
         }
       })
       .map((d) => {
