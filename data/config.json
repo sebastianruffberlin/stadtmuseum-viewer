@@ -16,6 +16,16 @@
         "title": "Similarity",
         "url": "data/tsne.csv",
         "scale": 1.1
+      },
+      {
+        "title": "Grid",
+        "url": "data/tsne.csv",
+        "type": "grid",
+        "scale": 0.8
+      },
+      {
+        "title": "Karte",
+        "type": "mapbox"
       }
     ],
     "textures": {
