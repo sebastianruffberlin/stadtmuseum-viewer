@@ -10,9 +10,12 @@
     "timeline": "data/timeline.csv",
     "layouts": [
       {
-        "title": "t-SNE",
-        "file": "data/tsne.csv",
-        "scale": 1.2
+        "title": "Time"
+      },
+      {
+        "title": "Similarity",
+        "url": "data/tsne.csv",
+        "scale": 1.1
       }
     ],
     "textures": {
