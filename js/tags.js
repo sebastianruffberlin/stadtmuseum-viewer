@@ -31,6 +31,8 @@ function Tags() {
 
   tags.init = function (_data, config) {
     data = _data;
+    console.log("Tags Init - Datenanzahl:", data.length);
+    console.log("Tags Init - Erste Keywords:", data[0].keywords);
 
     container = d3
       .select(".page")
@@ -41,6 +43,7 @@ function Tags() {
       .style("color", config.style.fontColor)
       .append("div");
 
+    console.log("Tags Container erstellt:", container.node());
     tags.update();
   };
 
@@ -63,17 +66,35 @@ function Tags() {
     data.forEach(function (d) {
       var search =
         state.search !== "" ? d.search.indexOf(state.search) > -1 : true;
-      var matches = filterWords.filter(function (word) {
-        return d.keywords.filter((d) => d == word).length;
-      });
-      if (highlight)
-        d.highlight = matches.length == filterWords.length && search;
-      else d.active = matches.length == filterWords.length && search;
+      
+      if (filterWords.length === 0) {
+        // Ohne Filter: alle Objekte aktiv
+        if (highlight) d.highlight = search;
+        else d.active = search;
+      } else {
+        // Mit Filter: prüfe ob das Objekt alle Filterbedingungen erfüllt
+        var matches = filterWords.filter(function (word) {
+          return d.keywords.some(function(keyword) {
+            // Match wenn:
+            // 1. Exakte Übereinstimmung (z.B. "Stil" === "Stil")
+            // 2. Hierarchische Übereinstimmung (z.B. "Stil>Realism" beginnt mit "Stil>")
+            // 3. Unterkategorie-Match (z.B. "Browns" in "Hauptfarbe>Browns")
+            return keyword === word || 
+                   keyword.startsWith(word + '>') ||
+                   keyword.endsWith('>' + word);
+          });
+        });
+        
+        if (highlight)
+          d.highlight = matches.length == filterWords.length && search;
+        else 
+          d.active = matches.length == filterWords.length && search;
+      }
     });
   };
 
   tags.update = function () {
-    console.log("update");
+    console.log("Tags Update - filterWords:", filterWords);
     tags.filter(filterWords);
 
     var keywords = [];
@@ -85,12 +106,16 @@ function Tags() {
       }
     });
 
+    console.log("Tags Update - Gefundene Keywords:", keywords.length);
+    console.log("Tags Update - Beispiel Keywords:", keywords.slice(0, 5).map(k => k.keyword));
+
     var filterWordsReverse = filterWords.map((d) => d).reverse();
 
-    keywordsNestGlobal = d3
+    // Schritt 1: Erstelle immer alle Oberkategorien
+    var topLevelCategories = d3
       .nest()
       .key(function (d) {
-        return d.keyword;
+        return d.keyword.split('>')[0]; // Immer Oberkategorie
       })
       .rollup(function (d) {
         return d.map(function (d) {
@@ -102,39 +127,81 @@ function Tags() {
         var y1 = d3.max(a.values.map((d) => +d.year));
         var y2 = d3.max(b.values.map((d) => +d.year));
         return d3.descending(y1, y2);
-      })
-      .filter((d) => {
-        if (filterWords.length === 0) {
-          // OHNE Filter: Zeige nur Oberkategorien (Wörter ohne ">")
-          return d.key.indexOf(">") === -1;
-        } else {
-          // MIT Filter: Zeige sowohl Oberkategorien als auch zugehörige Unterkategorien
-          var isTopLevel = d.key.indexOf(">") === -1;
-          var belongsToFilter = filterWords.some(function(filter) {
-            return d.key === filter || d.key.startsWith(filter + ">");
-          });
-          return isTopLevel || belongsToFilter;
-        }
-      })
-      .map((d) => {
-        var out = d.key;
-        filterWordsReverse.forEach((f) => {
-          if (f != out) out = out.replace(f + ">", "");
-        });
-        d.display = out;
-        return d;
-      })
-      .filter((d) => d.display.indexOf(">") == -1 || filterWords.length == 0);
+      });
 
-    console.log("keywordsNest", keywordsNestGlobal);
+    // Schritt 2: Erstelle Unterkategorien nur für ausgewählte Filter
+    var subCategories = [];
+    if (filterWords.length > 0) {
+      var filteredKeywords = [];
+      data.forEach(function (d) {
+        if (d.active) {
+          d.keywords.forEach(function (keyword) {
+            // Nur Keywords die zum Filter gehören
+            var matchesFilter = filterWords.some(function(filterWord) {
+              return keyword === filterWord || keyword.startsWith(filterWord + '>');
+            });
+            if (matchesFilter) {
+              filteredKeywords.push({ keyword: keyword, data: d });
+            }
+          });
+        }
+      });
+
+      subCategories = d3
+        .nest()
+        .key(function (d) {
+          var parts = d.keyword.split('>');
+          if (parts.length > 1) {
+            return parts[1]; // Unterkategorie
+          } else {
+            return null; // Überspringe Oberkategorien hier
+          }
+        })
+        .rollup(function (d) {
+          return d.map(function (d) {
+            return d.data;
+          });
+        })
+        .entries(filteredKeywords)
+        .filter(function(d) { return d.key !== null; }) // Entferne null-Werte
+        .sort(function (a, b) {
+          return d3.ascending(a.key, b.key); // Unterkategorien alphabetisch
+        });
+    }
+
+    // Schritt 3: Kombiniere Ober- und Unterkategorien
+    keywordsNestGlobal = [];
+    
+    // Erst alle Oberkategorien hinzufügen
+    topLevelCategories.forEach(function(topCat) {
+      keywordsNestGlobal.push({
+        key: topCat.key,
+        display: topCat.key,
+        values: topCat.values,
+        isTopLevel: true
+      });
+    });
+    
+    // Dann Unterkategorien hinzufügen (falls Filter aktiv)
+    subCategories.forEach(function(subCat) {
+      keywordsNestGlobal.push({
+        key: subCat.key,
+        display: subCat.key,
+        values: subCat.values,
+        isTopLevel: false
+      });
+    });
+
+    console.log("keywordsNestGlobal nach Verarbeitung:", keywordsNestGlobal.length);
+    console.log("Erste 5 Kategorien:", keywordsNestGlobal.slice(0, 5).map(k => k.key));
 
     var sliceNum = parseInt(sliceScale(width));
 
     var keywordsNest = keywordsNestGlobal
-      .slice(0, sliceNum)
-      .sort(function (a, b) {
-        return d3.ascending(a.key, b.key);
-      });
+      .slice(0, sliceNum);
+
+    console.log("keywordsNest für Display:", keywordsNest.length);
+    console.log("keywordsNest", keywordsNest);
 
     var keywordsExtent = d3.extent(keywordsNest, function (d) {
       return d.values.length;
@@ -169,6 +236,8 @@ function Tags() {
   }
 
   tags.draw = function (words) {
+    console.log("Tags Draw - Anzahl Wörter:", words.length);
+
     var select = container.selectAll(".tag").data(words, function (d) {
       return d.display;
     });
@@ -241,14 +310,9 @@ function Tags() {
     lock = true;
 
     if (filterWords.indexOf(d.key) > -1) {
-      console.log(d.key, filterWords);
       _.remove(filterWords, function (d2) {
         return d2 == d.key;
       });
-      // Für hierarchische Keywords mit ">"
-      if (d.key.indexOf(">") !== -1) {
-        filterWords = filterWords.filter((f) => !f.startsWith(d.key));
-      }
     } else {
       filterWords.push(d.key);
     }
