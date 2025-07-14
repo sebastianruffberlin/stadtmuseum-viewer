@@ -31,6 +31,8 @@ function Tags() {
 
   tags.init = function (_data, config) {
     data = _data;
+    console.log("Tags Init - Datenanzahl:", data.length);
+    console.log("Tags Init - Erste Keywords:", data[0].keywords);
 
     container = d3
       .select(".page")
@@ -41,6 +43,7 @@ function Tags() {
       .style("color", config.style.fontColor)
       .append("div");
 
+    console.log("Tags Container erstellt:", container.node());
     tags.update();
   };
 
@@ -74,6 +77,7 @@ function Tags() {
 
   tags.update = function () {
     tags.filter(filterWords);
+    console.log("Tags Update - filterWords:", filterWords);
 
     var keywords = [];
     data.forEach(function (d) {
@@ -83,6 +87,9 @@ function Tags() {
         });
       }
     });
+
+    console.log("Tags Update - Gefundene Keywords:", keywords.length);
+    console.log("Tags Update - Erste 5 Keywords:", keywords.slice(0, 5));
 
     var filterWordsReverse = filterWords.map((d) => d).reverse();
 
@@ -129,6 +136,8 @@ function Tags() {
       // This final filter ensures no "children" of un-selected "parents" are shown
       .filter((d) => d.display.indexOf(">") == -1);
 
+    console.log("keywordsNestGlobal nach Filterung:", keywordsNestGlobal.length);
+
     var sliceNum = parseInt(sliceScale(width));
 
     var keywordsNest = keywordsNestGlobal
@@ -136,6 +145,8 @@ function Tags() {
       .sort(function (a, b) {
         return d3.ascending(a.key, b.key);
       });
+
+    console.log("keywordsNest für Display:", keywordsNest.length);
 
     var keywordsExtent = d3.extent(keywordsNest, function (d) {
       return d.values.length;
@@ -170,6 +181,9 @@ function Tags() {
   }
 
   tags.draw = function (words) {
+    console.log("Tags Draw - Anzahl Wörter:", words.length);
+    console.log("Tags Draw - Erste 3 Wörter:", words.slice(0, 3));
+
     var select = container.selectAll(".tag").data(words, function (d) {
       return d.display;
     });
