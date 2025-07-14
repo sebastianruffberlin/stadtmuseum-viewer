@@ -34,6 +34,9 @@ function Tags() {
     console.log("Tags Init - Datenanzahl:", data.length);
     console.log("Tags Init - Erste Keywords:", data[0].keywords);
 
+    // Zurück zur ursprünglichen Breite
+    width = window.innerWidth - margin.left - margin.right;
+
     container = d3
       .select(".page")
       .append("div")
@@ -50,8 +53,8 @@ function Tags() {
   tags.resize = function () {
     if (!state.init) return;
 
-    (width = window.innerWidth - margin.left - margin.right),
-      (height = 400 - margin.top - margin.bottom);
+    width = window.innerWidth - margin.left - margin.right;
+    height = 400 - margin.top - margin.bottom;
 
     container
       .style("width", width + margin.left + margin.right)
@@ -231,13 +234,24 @@ function Tags() {
   };
 
   function layout(data) {
-    var p = 1.8;
-    var p2 = 1;
+    var p = 1.8; // Zurück zu ursprünglichen Abständen zwischen UK
+    var p2 = 5; // Guter Abstand zwischen Tags
+    var groupSpacing = 20; // Guter Abstand zwischen OK
     var x0 = 0;
+    var lastTopLevel = null;
 
-    data.forEach(function (d) {
+    data.forEach(function (d, i) {
+      // Extra Abstand vor neuen Oberkategorien (außer der ersten)
+      if (d.isTopLevel && lastTopLevel !== null) {
+        x0 += groupSpacing;
+      }
+      
       d.x = x0 + keywordsScale(d.values.length) * p + p2;
-      x0 += keywordsScale(d.values.length) * p;
+      x0 += keywordsScale(d.values.length) * p + p2;
+      
+      if (d.isTopLevel) {
+        lastTopLevel = d;
+      }
     });
   }
 
@@ -258,11 +272,26 @@ function Tags() {
       .classed("active", function (d) {
         return filterWords.indexOf(d.key) > -1;
       })
+      .classed("top-level", function (d) {
+        return d.isTopLevel;
+      })
+      .classed("sub-category", function (d) {
+        return !d.isTopLevel;
+      })
       .style("transform", function (d, i) {
         return "translate(" + d.x + "px,0px) rotate(45deg)";
       })
       .style("font-size", function (d) {
-        return keywordsScale(d.values.length) + "px";
+        // Oberkategorien haben eine Mindestgröße und sind größer
+        if (d.isTopLevel) {
+          var baseSize = Math.max(keywordsScale(d.values.length), 16); // Mindestens 16px
+          return (baseSize * 1.3) + "px";
+        } else {
+          return Math.min(keywordsScale(d.values.length), 16) + "px"; // Maximal 16px für UK
+        }
+      })
+      .style("font-weight", function (d) {
+        return d.isTopLevel ? "bold" : "normal";
       })
       .style("opacity", 1);
 
@@ -270,6 +299,12 @@ function Tags() {
       .enter()
       .append("div")
       .classed("tag", true)
+      .classed("top-level", function (d) {
+        return d.isTopLevel;
+      })
+      .classed("sub-category", function (d) {
+        return !d.isTopLevel;
+      })
       .on("mouseenter", tags.mouseenter)
       .on("mouseleave", tags.mouseleave)
       .on("click", tags.mouseclick)
@@ -277,7 +312,16 @@ function Tags() {
         return "translate(" + d.x + "px,0px) rotate(45deg)";
       })
       .style("font-size", function (d) {
-        return keywordsScale(d.values.length) + "px";
+        // Oberkategorien haben eine Mindestgröße und sind größer
+        if (d.isTopLevel) {
+          var baseSize = Math.max(keywordsScale(d.values.length), 16); // Mindestens 16px
+          return (baseSize * 1.3) + "px";
+        } else {
+          return Math.min(keywordsScale(d.values.length), 16) + "px"; // Maximal 16px für UK
+        }
+      })
+      .style("font-weight", function (d) {
+        return d.isTopLevel ? "bold" : "normal";
       })
       .style("opacity", 0);
 
@@ -294,7 +338,13 @@ function Tags() {
         return "translate(" + d.x + "px,0px) rotate(45deg)";
       })
       .style("font-size", function (d) {
-        return keywordsScale(d.values.length) + "px";
+        // Oberkategorien haben eine Mindestgröße und sind größer
+        if (d.isTopLevel) {
+          var baseSize = Math.max(keywordsScale(d.values.length), 16); // Mindestens 16px
+          return (baseSize * 1.3) + "px";
+        } else {
+          return Math.min(keywordsScale(d.values.length), 16) + "px"; // Maximal 16px für UK
+        }
       })
       .style("opacity", 1);
 
