@@ -13,24 +13,20 @@
         "title": "Time"
       },
       {
-        "title": "Similarity",
-        "url": "data/tsne.csv",
-        "scale": 1.1
-      },
-      {
-        "title": "Grid",
-        "url": "data/tsne.csv",
+        "title": "Color grid",
+        "url": "data/colors.csv",
         "type": "grid",
-        "scale": 0.8
+        "scale": 1.0
       },
       {
-        "title": "Karte",
-        "type": "mapbox"
+        "title": "Similarity", 
+        "url": "data/tsne.csv",
+        "scale": 1.2
       }
     ],
     "textures": {
       "medium": {
-        "size": 200,
+        "size": 256,
         "url": "data/sprites/spritesheet.json"
       },
       "detail": {
@@ -40,37 +36,49 @@
     }
   },
   "style": {
-    "canvasBackground": "#ffffff",
-    "timelineBackground": "#f8f4e9"
+    "fontColor": "#333333",
+    "fontColorActive": "#ffffff", 
+    "fontBackground": "#e91e63",
+    "canvasBackground": "#f5f5f5",
+    "timelineBackground": "#ffffff",
+    "timelineFontColor": "#333",
+    "detailBackground": "#ffffff",
+    "infoBackground": "#333333",
+    "infoFontColor": "#ffffff"
   },
   "projection": {
-    "columns": 3
+    "columns": 6
   },
   "detail": {
     "structure": [
       {
         "name": "Titel",
         "source": "_Titel",
+        "display": "column",
         "type": "text"
       },
       {
-        "name": "Künstler:in",
+        "name": "Künstler:in", 
         "source": "_Künstler:in",
+        "display": "column",
         "type": "text"
       },
       {
         "name": "Datierung",
         "source": "yearExact",
+        "display": "column", 
         "type": "text"
       },
       {
         "name": "Technik",
         "source": "_Techniken",
+        "display": "column",
         "type": "text"
       },
       {
         "name": "Inventarnummer",
         "source": "_Inventarnummer",
+        "display": "column",
         "type": "text"
       }
     ]
