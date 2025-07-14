@@ -10,21 +10,9 @@
     "timeline": "data/timeline.csv",
     "layouts": [
       {
-        "title": "Time",
-        "type": "group",
-        "groupKey": "year"
-      },
-      {
-        "title": "Colors",
-        "file": "data/colors.csv"
-      },
-      {
-        "title": "Similarity",
-        "file": "data/tsne.csv"
-      },
-      {
-        "title": "Karte",
-        "type": "mapbox"
+        "title": "t-SNE",
+        "file": "data/tsne.csv",
+        "scale": 1.2
       }
     ],
     "textures": {
