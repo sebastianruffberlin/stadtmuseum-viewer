@@ -164,27 +164,44 @@ function Tags() {
       });
     }
 
-    // Schritt 3: Kombiniere Ober- und Unterkategorien
+    // Schritt 3: Kombiniere Ober- und Unterkategorien horizontal nebeneinander
     keywordsNestGlobal = [];
     
-    // Erst alle Oberkategorien hinzufügen
+    // Für jede Oberkategorie: erst die Oberkategorie, dann ihre Unterkategorien direkt daneben
     topLevelCategories.forEach(function(topCat) {
+      // Oberkategorie hinzufügen
       keywordsNestGlobal.push({
         key: topCat.key,
         display: topCat.key,
         values: topCat.values,
         isTopLevel: true
       });
-    });
-    
-    // Dann Unterkategorien hinzufügen (nur wenn entsprechende Oberkategorie aktiv)
-    subCategories.forEach(function(subCat) {
-      keywordsNestGlobal.push({
-        key: subCat.key,
-        display: subCat.key,
-        values: subCat.values,
-        isTopLevel: false
-      });
+      
+      // Wenn diese Oberkategorie aktiv ist, füge ihre Unterkategorien direkt daneben hinzu
+      if (filterWords.indexOf(topCat.key) > -1) {
+        var subCatsForThisTop = subCategories.filter(function(subCat) {
+          // Prüfe ob diese Unterkategorie zu dieser Oberkategorie gehört
+          return keywords.some(function(keywordItem) {
+            return keywordItem.keyword === topCat.key + '>' + subCat.key;
+          });
+        });
+        
+        // Unterkategorien alphabetisch sortieren
+        subCatsForThisTop.sort(function(a, b) {
+          return d3.ascending(a.key, b.key);
+        });
+        
+        // Unterkategorien direkt daneben hinzufügen
+        subCatsForThisTop.forEach(function(subCat) {
+          keywordsNestGlobal.push({
+            key: subCat.key,
+            display: subCat.key,
+            values: subCat.values,
+            isTopLevel: false,
+            parentCategory: topCat.key
+          });
+        });
+      }
     });
 
     console.log("keywordsNestGlobal nach Verarbeitung:", keywordsNestGlobal.length);
