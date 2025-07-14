@@ -10,21 +10,21 @@
     "timeline": "data/timeline.csv",
     "layouts": [
       {
-        "title": "Zeitleiste",
+        "title": "Time",
         "type": "group",
         "groupKey": "year"
       },
       {
-        "title": "Farben",
+        "title": "Colors",
         "file": "data/colors.csv"
       },
       {
-        "title": "Ähnlichkeit (Grid)",
+        "title": "Grid",
         "type": "grid",
         "file": "data/tsne.csv"
       },
       {
-        "title": "Ähnlichkeit (Blasen)",
+        "title": "Bubbles",
         "file": "data/tsne.csv"
       },
       {
