@@ -15,7 +15,7 @@
       {
         "title": "Similarity",
         "url": "data/tsne.csv",
-        "scale": 2.5
+        "scale": 2.0
       },
       {
         "title": "Color Grid",
@@ -43,7 +43,7 @@
     "timelineBackground": "#f8f4e9"
   },
   "projection": {
-    "columns": 1
+    "columns": 2
   },
   "detail": {
     "structure": [
