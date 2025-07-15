@@ -15,17 +15,17 @@
       {
         "title": "Similarity",
         "url": "data/tsne.csv",
-        "scale": 1.4
+        "scale": 1.2
       },
       {
         "title": "Color Grid",
         "url": "data/grid.csv",
-        "scale": 1.8
+        "scale": 1.2
       }
     ],
     "textures": {
       "medium": {
-        "size": 400,
+        "size": 256,
         "url": "data/sprites/spritesheet.json"
       },
       "detail": {
@@ -43,7 +43,7 @@
     "timelineBackground": "#f8f4e9"
   },
   "projection": {
-    "columns": 3
+    "columns": 11
   },
   "detail": {
     "structure": [
