@@ -320,8 +320,15 @@ margin-top: -100px;}
 
  
 .viz {
-
     position: absolute;
+    /* Abstand in Höhe des Headers hinzufügen */
+    top: 90px; 
+    left: 0;
+    width: 100%;
+    /* Höhe der Visualisierung anpassen */
+    height: calc(100% - 90px); 
+    cursor: grab;
+    cursor: -webkit-grab;
 }
 
 svg {
