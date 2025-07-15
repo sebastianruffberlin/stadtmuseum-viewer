@@ -4,8 +4,7 @@
 
 function Canvas() {
 
-  // *** MODIFICATION START ***
-  // Diese Hilfsfunktion misst, wie viel Platz die oberen UI-Elemente
+  // Hilfsfunktion, die misst, wie viel Platz die oberen UI-Elemente
   // (Suchleiste, Tag-Cloud etc.) tatsächlich auf dem Bildschirm einnehmen.
   function getTopUiOffset() {
     // Liste aller Elemente, die oben sein könnten.
@@ -27,7 +26,6 @@ function Canvas() {
     // Wir geben einen kleinen Puffer, damit es nicht direkt anklebt.
     return maxBottom > 0 ? maxBottom + 5 : 0;
   }
-  // *** MODIFICATION END ***
 
 
   var margin = {
@@ -162,8 +160,6 @@ function Canvas() {
   canvas.x = x;
   canvas.y = yscale;
 
-  // *** MODIFICATION START ***
-  // Die resize-Funktion wird angepasst, um die Höhe der UI-Elemente zu berücksichtigen.
   canvas.resize = function () {
     if (!state.init) return;
 
@@ -189,7 +185,6 @@ function Canvas() {
     canvas.makeScales();
     canvas.project();
   };
-  // *** MODIFICATION END ***
 
 
   canvas.makeScales = function () {
@@ -262,8 +257,6 @@ function Canvas() {
 
   };
 
-  // *** MODIFICATION START ***
-  // canvas.init wird angepasst, um die initiale Größe und Position korrekt zu setzen.
   canvas.init = function (_data, _timeline, _config) {
     data = _data;
     config = _config;
@@ -281,7 +274,6 @@ function Canvas() {
     // Wir setzen die Position direkt hier, anstatt im CSS, damit es immer stimmt.
     container.style("position", "absolute");
     container.style("top", topOffset + "px");
-    // *** MODIFICATION END ***
 
     detailVue._data.structure = config.detail.structure;
 
@@ -381,7 +373,6 @@ function Canvas() {
     state.init = true;
   };
   
-  // Der Rest der Datei bleibt unverändert
   canvas.addTsneData = function (name, d, scale) {
     tsneIndex[name] = {};
     tsneScale[name] = scale;
@@ -898,7 +889,12 @@ function Canvas() {
     quadtree = Quadtree(data);
   };
 
+  // *** MODIFICATION START ***
+  // Die Startposition des Zooms wird angepasst, um den Platz der oberen UI-Elemente auszugleichen.
   canvas.resetZoom = function (callback) {
+    // Den aktuellen Versatz durch die UI-Elemente ermitteln.
+    const topOffset = getTopUiOffset();
+
     console.log(scale)
     var duration = scale > 1 ? 1000 : 0;
 
@@ -906,7 +902,10 @@ function Canvas() {
       return d.y;
     });
 
-    var y = -bottomPadding;
+    // Die initiale vertikale Position muss den Versatz berücksichtigen.
+    // Wir verschieben die Ansicht um diesen Betrag nach oben.
+    // In diesem Koordinatensystem bedeutet "nach oben" ein negativerer Y-Wert.
+    var y = -bottomPadding - topOffset;
 
     vizContainer
       .call(zoom.translate(translate).event)
@@ -917,6 +916,7 @@ function Canvas() {
         if (callback && scale < zoomBarrier) callback();
       })
   };
+  // *** MODIFICATION END ***
 
   canvas.split = function () {
     var layout = state.mode.y ? stackYLayout : stackLayout;
