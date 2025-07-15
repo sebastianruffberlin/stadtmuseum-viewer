@@ -354,16 +354,864 @@ function Canvas() {
     animate();
     state.init = true;
   };
-  
-  // (Der Rest der Datei bleibt unverändert)
-  // ... (fügen Sie hier den Rest Ihres Codes ein, ab canvas.addTsneData) ...
-  
-  // Kopieren Sie einfach den gesamten Rest Ihrer Datei ab hier.
-  // Ich lasse ihn hier weg, um die Antwort kurz zu halten.
-  // Wichtig ist nur, dass die Funktionen "canvas.init" und "canvas.resize"
-  // ersetzt werden und die "height"-Variable am Anfang nur deklariert wird.
+ canvas.addTsneData = function (name, d, scale) {
+    tsneIndex[name] = {};
+    tsneScale[name] = scale;
+    var clean = d.map(function (d) {
+      return {
+        id: d.id,
+        x: parseFloat(d.x),
+        y: parseFloat(d.y),
+      };
+    });
+    var xExtent = d3.extent(clean, function (d) {
+      return d.x;
+    });
+    var yExtent = d3.extent(clean, function (d) {
+      return d.y;
+    });
 
-  // ... [REST OF YOUR CODE] ...
-  
+    var x = d3.scale.linear().range([0, 1]).domain(xExtent);
+    var y = d3.scale.linear().range([0, 1]).domain(yExtent);
+
+    d.forEach(function (d) {
+      tsneIndex[name][d.id] = [x(d.x), y(d.y)];
+    });
+  };
+
+  function mousemove(d) {
+    if (timelineHover) return;
+
+    var mouse = d3.mouse(vizContainer.node());
+    var p = toScreenPoint(mouse);
+
+    var distance = 200;
+
+    var best = nearest(
+      p[0] - imgPadding,
+      p[1] - imgPadding,
+      {
+        d: distance,
+        p: null,
+      },
+      quadtree
+    );
+
+    selectedImageDistance = best && best.d || 1000;
+    // console.log(cursorCutoff, scale, scale1, selectedImageDistance)
+
+    // if (best.p && selectedImageDistance > 7) {
+    //   //selectedImage = null;
+    //   //zoom.center(null);
+    //   container.style("cursor", "default");
+    // } else {
+    if (best && best.p && !zoomedToImage) {
+      var d = best.p;
+      var center = [
+        (d.x + imgPadding) * scale + translate[0],
+        (height + d.y + imgPadding) * scale + translate[1],
+      ];
+      zoom.center(center);
+      selectedImage = d;
+    }
+
+    container.style("cursor", function () {
+      return selectedImageDistance < cursorCutoff && selectedImage.active
+        ? "pointer"
+        : "default";
+    });
+    // }
+  }
+
+  function stackLayout(data, invert) {
+    var groupKey = state.mode.groupKey
+    var years = d3
+      .nest()
+      .key(function (d) {
+        return d[groupKey];
+      })
+      .entries(data);
+
+    years.forEach(function (year) {
+      var startX = x(year.key);
+      var total = year.values.length;
+      year.values.sort(function (a, b) {
+        return b.keywords.length - a.keywords.length;
+      });
+
+      year.values.forEach(function (d, i) {
+        var row = Math.floor(i / columns) + 2;
+        d.ii = i;
+
+        d.x = startX + (i % columns) * (rangeBand / columns);
+        d.y = (invert ? 1 : -1) * (row * (rangeBand / columns));
+
+        d.x1 = d.x * scale1 + imageSize / 2;
+        d.y1 = d.y * scale1 + imageSize / 2;
+
+        if (d.sprite.position.x == 0) {
+          d.sprite.position.x = d.x1;
+          d.sprite.position.y = d.y1;
+        }
+
+        if (d.sprite2) {
+          d.sprite2.position.x = d.x * scale2 + imageSize2 / 2;
+          d.sprite2.position.y = d.y * scale2 + imageSize2 / 2;
+        }
+
+        d.order = (invert ? 1 : 1) * (total - i);
+      });
+    });
+
+  }
+
+  function stackYLayout(data, invert) {
+    if (data.length == 0) return
+    var groupKey = state.mode.groupKey
+    var years = d3
+      .nest()
+      .key(function (d) {
+        return d[groupKey];
+      })
+      .entries(data);
+
+    // y scale for state.mode.y (e.g. "kaufpreis")
+    var yExtent = d3.extent(data, function (d) { return +d[state.mode.y]; })
+    var yRange = [2 * (rangeBand / columns), height * 0.7]
+
+    yExtent[0] = 0;
+
+    var yscale = d3.scale.linear()
+      .domain(yExtent)
+      .range(yRange);
+
+    // console.log("yscale", yscale.domain(), yscale.range())
+
+    years.forEach(function (year) {
+      var startX = x(year.key);
+
+      year.values.sort(function (a, b) {
+        return b[state.mode.y] - a[state.mode.y];
+      });
+
+      year.values.forEach(function (d, i) {
+        d.ii = i;
+
+        d.x = startX + (i % columns) * (rangeBand / columns);
+        d.y = (invert ? 1 : -1) * yscale(d[state.mode.y]);
+        //d.y = (invert ? 1 : -1) * (row * (rangeBand / columns));
+
+        d.x1 = d.x * scale1 + imageSize / 2;
+        d.y1 = d.y * scale1 + imageSize / 2;
+
+        if (d.sprite.position.x == 0) {
+          d.sprite.position.x = d.x1;
+          d.sprite.position.y = d.y1;
+        }
+
+        if (d.sprite2) {
+          d.sprite2.position.x = d.x * scale2 + imageSize2 / 2;
+          d.sprite2.position.y = d.y * scale2 + imageSize2 / 2;
+        }
+
+        //d.order = (invert ? 1 : 1) * (total - i);
+      });
+    });
+
+    // data.filter(d => !d[state.mode.y]).forEach(function (d, i) {
+    //   d.x = 0;
+    //   d.y = 0;
+    //   d.active = false;
+    //   // d.sprite.visible = false;
+    //   // if (d.sprite2) d.sprite2.visible = false;
+    // })
+
+  }
+
+  canvas.distance = function (a, b) {
+    return Math.sqrt(
+      (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1])
+    );
+  };
+
+  function toScreenPoint(p) {
+    var p2 = [0, 0];
+
+    p2[0] = p[0] / scale - translate[0] / scale;
+    p2[1] = p[1] / scale - height - translate[1] / scale;
+
+    return p2;
+  }
+
+  var speed = 0.03;
+
+  function imageAnimation() {
+    var sleep = true;
+
+    data.forEach(function (d, i) {
+      var diff;
+      diff = d.x1 - d.sprite.position.x;
+      if (Math.abs(diff) > 0.1) {
+        d.sprite.position.x += diff * speed;
+        sleep = false;
+      }
+
+      diff = d.y1 - d.sprite.position.y;
+      if (Math.abs(diff) > 0.1) {
+        d.sprite.position.y += diff * speed;
+        sleep = false;
+      }
+
+      diff = d.alpha - d.sprite.alpha;
+      if (Math.abs(diff) > 0.01) {
+        d.sprite.alpha += diff * 0.2;
+        sleep = false;
+      }
+
+      d.sprite.visible = d.sprite.alpha > 0.1;
+
+      if (d.sprite2) {
+        diff = d.alpha2 - d.sprite2.alpha;
+        if (Math.abs(diff) > 0.01) {
+          d.sprite2.alpha += diff * 0.2;
+          sleep = false;
+        }
+
+        d.sprite2.visible = d.sprite2.alpha > 0.1;
+        //else d.sprite2.visible = d.visible;
+      }
+    });
+    return sleep;
+  }
+
+  canvas.wakeup = function () {
+    sleep = false;
+  };
+
+  canvas.setMode = function (layout) {
+    state.mode = layout;
+
+    if (layout.type == "group") {
+      canvas.initGroupLayout();
+      if(layout.columns){
+        columns = layout.columns;
+      } else {
+        columns = config.projection.columns;
+      }
+    }
+    // if (layout.timeline) {
+    //   canvas.setCustomTimelineData()
+    // }
+
+    timeline.setDisabled(layout.type != "group" && !layout.timeline);
+    canvas.makeScales();
+    canvas.project();
+  };
+
+  canvas.getMode = function () {
+    return state.mode;
+  };
+
+  function animate(time) {
+    requestAnimationFrame(animate);
+    loadImages();
+    if (sleep) return;
+    sleep = imageAnimation();
+    renderer.render(stage);
+  }
+
+  // function zoomToYear(d) {
+  //   var xYear = x(d.year);
+  //   var scale = 1 / ((rangeBand * 4) / width);
+  //   var padding = rangeBand * 1.5;
+  //   var translateNow = [-scale * (xYear - padding), -scale * (height + d.y)];
+
+  //   vizContainer
+  //     .call(zoom.translate(translate).event)
+  //     .transition()
+  //     .duration(2000)
+  //     .call(zoom.scale(scale).translate(translateNow).event);
+  // }
+
+  function zoomToImage(d, duration) {
+    state.zoomingToImage = true;
+    vizContainer.style("pointer-events", "none");
+    zoom.center(null);
+    loadMiddleImage(d);
+    d3.select(".tagcloud").classed("hide", true);
+    
+    // var padding = (state.mode.type === "group" ? 0.1 : 0.8) * rangeBandImage;
+    // var sidbar = width / 8;
+    // // var scale = d.sprite.width / rangeBandImage * columns * 1.3;
+    // var scale = scale1 * 4;
+    // console.log(d, imgPadding, scale, scale1, padding, scale1, d.x, d.sprite.width);
+
+    // var translateNow = [
+    //   -scale * (d.x + margin.left / scale1 / 6 ),
+    //   -scale * (height + d.y + (margin.top / scale1 / 2)),
+    // ];
+
+    var padding = rangeBandImage / 2;
+    //var scale = 1 / (rangeBandImage / (width * 0.8));
+    var max = Math.max(width, height);
+    var scale = 1 / (rangeBandImage / (max * 0.6));
+    var translateNow = [
+      -scale * (d.x - padding) - (max * 0.3) / 2 + margin.left,
+      -scale * (height + d.y + padding) - margin.top + height / 2,
+    ];
+
+    // console.log(translateNow)
+
+    zoomedToImageScale = scale;
+
+    setTimeout(function () {
+      hideTheRest(d);
+    }, duration / 2);
+
+    vizContainer
+      .call(zoom.translate(translate).event)
+      .transition()
+      .duration(duration)
+      .call(zoom.scale(scale).translate(translateNow).event)
+      .each("end", function () {
+        zoomedToImage = true;
+        selectedImage = d;
+        hideTheRest(d);
+        showDetail(d);
+        loadBigImage(d, "click");
+        state.zoomingToImage = false;
+        console.log("zoomedToImage", zoomedToImage);
+        vizContainer.style("pointer-events", "auto");
+      });
+  }
+  canvas.zoomToImage = zoomToImage;
+
+  function showDetail(d) {
+    // console.log("show detail", d)
+    // console.log(detailVue, detailVue._data.item)
+
+    detailContainer.select(".outer").node().scrollTop = 0;
+
+    detailContainer.classed("hide", false).classed("sneak", utils.isMobile());
+
+    // needs to be done better
+    // for (field in selectedImage) {
+    //   if (field[0] === "_") detailData[field] = selectedImage[field];
+    // }
+
+    var detailData = {};
+    // var activeFields = config.detail.structure
+    //   .filter(function (field, index) {
+    //     return selectedImage[field.source] && selectedImage[field.source] !== "";
+    //   })
+    // console.log("activeFields", activeFields)
+
+    config.detail.structure.forEach(function (field) {
+      var val = selectedImage[field.source];
+      if (val && val !== "") detailData[field.source] = val;
+      else detailData[field.source] = "";
+      if (field.fields && field.fields.length) {
+        field.fields.forEach(function (subfield) {
+          var val = selectedImage[subfield];
+          // console.log("subfield", subfield, val)
+          if (val && val !== "") detailData[subfield] = val;
+        })
+      }
+      // detailData[field.source] = selectedImage[field.source];
+    })
+    // console.log("showDetail", detailData)
+
+    // detailVue._data.structure = activeFields;
+
+    detailData["_id"] = selectedImage.id;
+    detailData["_keywords"] = selectedImage.keywords || "None";
+    detailData["_year"] = selectedImage.year;
+    detailData["_imagenum"] = selectedImage.imagenum || 1;
+    detailVue.id = d.id;
+    detailVue.page = d.page;
+    detailVue.item = detailData;
+  }
+
+  canvas.showDetail = showDetail;
+
+  canvas.changePage = function (id, page) {
+    console.log("changePage", id, page, selectedImage);
+    selectedImage.page = page;
+    detailVue._data.page = page;
+    clearBigImages();
+    loadBigImage(selectedImage);
+  };
+
+  function hideTheRest(d) {
+    data.forEach(function (d2) {
+      if (d2.id !== d.id) {
+        d2.alpha = 0;
+        d2.alpha2 = 0;
+      }
+    });
+  }
+
+  function showAllImages() {
+    data.forEach(function (d) {
+      d.alpha = d.active ? 1 : 0.2;
+      d.alpha2 = d.visible ? 1 : 0;
+    });
+  }
+
+  var zoomBarrierState = false;
+
+  function zoomed() {
+    translate = d3.event.translate;
+    scale = d3.event.scale;
+    if (!startTranslate) startTranslate = translate;
+    drag = startTranslate && translate !== startTranslate;
+    // check borders
+    var x1 = (-1 * translate[0]) / scale;
+    var x2 = x1 + widthOuter / scale;
+
+    if (d3.event.sourceEvent != null) {
+      if (x1 < 0) {
+        translate[0] = 0;
+      } else if (x2 > widthOuter) {
+        translate[0] = (widthOuter * scale - widthOuter) * -1;
+      }
+
+      zoom.translate([translate[0], translate[1]]);
+
+      x1 = (-1 * translate[0]) / scale;
+      x2 = x1 + width / scale;
+    }
+
+    if (
+      zoomedToImageScale != 0 &&
+      scale > zoomedToImageScale * 0.9 &&
+      !zoomedToImage &&
+      selectedImage &&
+      selectedImage.type == "image"
+    ) {
+      zoomedToImage = true;
+      zoom.center(null);
+      zoomedToImageScale = scale;
+      hideTheRest(selectedImage);
+      showDetail(selectedImage);
+    }
+
+    if (zoomedToImage && zoomedToImageScale * 0.8 > scale) {
+      // console.log("clear")
+      zoomedToImage = false;
+      state.lastZoomed = 0;
+      showAllImages();
+      clearBigImages();
+      detailContainer.classed("hide", true);
+    }
+
+    timeline.update(x1, x2, scale, translate, scale1);
+
+    // toggle zoom overlays
+    if (scale > zoomBarrier && !zoomBarrierState) {
+      zoomBarrierState = true;
+      d3.select(".tagcloud, .crossfilter").classed("hide", true);
+      //d3.select(".filter").classed("hide", true);
+      d3.select(".searchbar").classed("hide", true);
+      d3.select(".infobar").classed("sneak", true);
+      // d3.select(".filterReset").classed("hide", true);
+      //d3.select(".filterReset").text("Zur Übersicht")
+      // console.log("zoomBarrierState", zoomBarrierState)
+    }
+    if (scale < zoomBarrier && zoomBarrierState) {
+      zoomBarrierState = false;
+      d3.select(".tagcloud, .crossfilter").classed("hide", false);
+      //d3.select(".filter").classed("hide", false);
+      d3.select(".vorbesitzerinOuter").classed("hide", false);
+      // d3.select(".infobar").classed("sneak", false);
+      d3.select(".searchbar").classed("hide", false);
+      //d3.select(".filterReset").text("Filter zurücksetzen")
+
+      // d3.select(".filterReset").classed("hide", false);
+      // console.log("zoomBarrierState", zoomBarrierState)
+
+    }
+
+    stage2.scale.x = d3.event.scale;
+    stage2.scale.y = d3.event.scale;
+    stage2.x = d3.event.translate[0];
+    stage2.y = d3.event.translate[1];
+
+    sleep = false;
+  }
+
+  function zoomstart(d) {
+    zooming = true;
+    startTranslate = false;
+    drag = false;
+    startScale = scale;
+  }
+
+  function zoomend(d) {
+    drag = startTranslate && translate !== startTranslate;
+    zooming = false;
+    filterVisible();
+
+    if (
+      zoomedToImage &&
+      selectedImage &&
+      !selectedImage.big &&
+      state.lastZoomed != selectedImage.id &&
+      !state.zoomingToImage
+    ) {
+      loadBigImage(selectedImage, "zoom");
+    }
+  }
+
+  canvas.highlight = function () {
+    data.forEach(function (d, i) {
+      d.alpha = d.highlight ? 1 : 0.2;
+    });
+    canvas.wakeup();
+  };
+
+  // canvas.project = function () {
+  //     sleep = false
+  //     canvas.split();
+  //     canvas.resetZoom();
+  // }
+
+  canvas.project = function () {
+    ping();
+    sleep = false;
+    var scaleFactor = state.mode.type == "group" ? 0.9 : tsneScale[state.mode.title] || 0.5;
+    data.forEach(function (d) {
+      d.scaleFactor = scaleFactor;
+      d.sprite.scale.x = d.scaleFactor;
+      d.sprite.scale.y = d.scaleFactor;
+      if (d.sprite2) {
+        d.sprite2.scale.x = d.scaleFactor;
+        d.sprite2.scale.y = d.scaleFactor;
+      }
+    });
+
+    if (state.mode.type === "group") {
+      canvas.split();
+      cursorCutoff = (1 / scale1) * imageSize * 1;
+    } else {
+      canvas.projectTSNE();
+      cursorCutoff = (1 / scale1) * imageSize * 1;
+    }
+
+    canvas.resetZoom();
+
+    zoomedToImageScale =
+      (0.8 / (x.rangeBand() / columns / width)) *
+      (state.mode.type === "group" ? 1 : 0.5);
+  };
+
+  canvas.projectTSNE = function () {
+    var marginBottom = -height / 2.5;
+
+    var inactive = data.filter(function (d) {
+      return !d.active;
+    });
+    var inactiveSize = inactive.length;
+
+    var active = data.filter(function (d) {
+      return d.active;
+    });
+
+    var dimension = Math.min(width, height) * 0.8;
+
+    inactive.forEach(function (d, i) {
+      var r = dimension / 1.4 + Math.random() * 40;
+      var a = -Math.PI / 2 + (i / inactiveSize) * 2 * Math.PI;
+
+      d.x = r * Math.cos(a) + width / 2 + margin.left;
+      d.y = r * Math.sin(a) + marginBottom;
+    });
+
+    active.forEach(function (d) {
+      var factor = height / 2;
+      var tsneEntry = tsneIndex[state.mode.title][d.id];
+      if (tsneEntry) {
+        d.x =
+          tsneEntry[0] * dimension + width / 2 - dimension / 2 + margin.left;
+        d.y = -1 * tsneEntry[1] * dimension;
+      } else {
+        // console.log("not found", d)
+        d.alpha = 0;
+        d.x = 0;
+        d.y = 0;
+        d.active = false;
+      }
+      // var tsneEntry = tsne.find(function (t) {
+      //     return t.id == d.id
+      // })
+    });
+
+    data.forEach(function (d) {
+      d.x1 = d.x * scale1 + imageSize / 2;
+      d.y1 = d.y * scale1 + imageSize / 2;
+
+      if (d.sprite.position.x == 0) {
+        d.sprite.position.x = d.x1;
+        d.sprite.position.y = d.y1;
+      }
+
+      if (d.sprite2) {
+        d.sprite2.position.x = d.x * scale2 + imageSize2 / 2;
+        d.sprite2.position.y = d.y * scale2 + imageSize2 / 2;
+      }
+    });
+
+    quadtree = Quadtree(data);
+    //chart.resetZoom();
+  };
+
+  canvas.resetZoom = function (callback) {
+    console.log(scale)
+    var duration = scale > 1 ? 1000 : 0;
+
+    extent = d3.extent(data, function (d) {
+      return d.y;
+    });
+
+    // var y = -extent[1] - bottomPadding;
+    // y = extent[1] / -3 - bottomPadding;
+    // // this needs a major cleanup
+    // y = Math.max(y, -bottomPadding);
+    var y = -bottomPadding;
+
+    // console.log("resetZoom", y,extent)
+
+    vizContainer
+      .call(zoom.translate(translate).event)
+      .transition()
+      .duration(duration)
+      .call(zoom.translate([0, y]).scale(1).event)
+      .each("end", function () {
+        if (callback && scale < zoomBarrier) callback();
+      })
+  };
+
+  canvas.split = function () {
+    var layout = state.mode.y ? stackYLayout : stackLayout;
+    var active = data.filter(function (d) {
+      return d.active;
+    });
+    layout(active, false);
+    var inactive = data.filter(function (d) {
+      return !d.active;
+    });
+    console.log("inactive", inactive);
+    layout(inactive, true);
+    quadtree = Quadtree(data);
+  };
+
+  function filterVisible() {
+    var zoomScale = scale;
+    if (zoomedToImage) return;
+
+    data.forEach(function (d, i) {
+      var p = d.sprite.position;
+
+      var x = p.x / scale1 + translate[0] / zoomScale;
+      var y = p.y / scale1 + translate[1] / zoomScale;
+      var padding = 2;
+
+      if (
+        x > -padding
+        && x < width / zoomScale + padding 
+        && y + height < height / zoomScale + padding
+        && y > height * -1 - padding
+      ) {
+        d.visible = true;
+      } else {
+        d.visible = false;
+      }
+    });
+
+    var visible = data.filter(function (d) {
+      return d.visible;
+    });
+
+    if (visible.length < 40) {
+      data.forEach(function (d) {
+        if (d.visible && d.loaded && d.active) d.alpha2 = 1;
+        else if (d.visible && !d.loaded && d.active) loadImagesCue.push(d);
+        else d.alpha2 = 0;
+      });
+    } else {
+      data.forEach(function (d) {
+        d.alpha2 = 0;
+      });
+    }
+  }
+
+  function loadMiddleImage(d) {
+    if (d.loaded) {
+      d.alpha2 = 1;
+      return;
+    }
+    var url = "";
+    if (config.loader.textures.detail.csv) {
+      url = d[config.loader.textures.detail.csv];
+    } else {
+      url = config.loader.textures.detail.url + d.id + ".jpg";
+    }
+
+    var texture = new PIXI.Texture.from(url);
+    var sprite = new PIXI.Sprite(texture);
+
+    var update = function () {
+      sleep = false;
+    };
+
+    sprite.on("added", update);
+    texture.once("update", update);
+
+    sprite.scale.x = d.scaleFactor;
+    sprite.scale.y = d.scaleFactor;
+
+    sprite.anchor.x = 0.5;
+    sprite.anchor.y = 0.5;
+    sprite.position.x = d.x * scale2 + imageSize2 / 2;
+    sprite.position.y = d.y * scale2 + imageSize2 / 2;
+    sprite._data = d;
+    stage4.addChild(sprite);
+    d.sprite2 = sprite;
+    d.alpha2 = d.highlight;
+    d.loaded = true;
+    sleep = false;
+  }
+
+  function loadBigImage(d) {
+    if (!config.loader.textures.big) {
+      loadMiddleImage(d);
+      return;
+    }
+
+    state.lastZoomed = d.id;
+    var page = d.page ? "_" + d.page : "";
+    var url = "";
+    if (config.loader.textures.big.csv) {
+      url = d[config.loader.textures.big.csv];
+    } else {
+      url = config.loader.textures.big.url + d.id + page + ".jpg";
+    }
+
+    var texture = new PIXI.Texture.from(url);
+    var sprite = new PIXI.Sprite(texture);
+    var res = config.loader.textures.big.size;
+
+    var updateSize = function (t) {
+      var size = Math.max(texture.width, texture.height);
+      sprite.scale.x = sprite.scale.y = (imageSize3 / size) * d.scaleFactor;
+      sleep = false;
+      if (t.valid) {
+        d.alpha = 0;
+        d.alpha2 = 0;
+      }
+    };
+
+    sprite.on("added", updateSize);
+    texture.once("update", updateSize);
+
+    if (d.imagenum) {
+      sprite.on("mousemove", function (s) {
+        var pos = s.data.getLocalPosition(s.currentTarget);
+        s.currentTarget.cursor = pos.x > 0 ? "e-resize" : "w-resize";
+      });
+      sprite.on("click", function (s) {
+        if (drag) return;
+
+        s.stopPropagation();
+        spriteClick = true;
+        var pos = s.data.getLocalPosition(s.currentTarget);
+        var dir = pos.x > 0 ? 1 : -1;
+        var page = d.page + dir;
+        var nextPage = page;
+        if (page > d.imagenum - 1) nextPage = 0;
+        if (page < 0) nextPage = d.imagenum - 1;
+
+        canvas.changePage(d.id, nextPage);
+      });
+      sprite.interactive = true;
+    }
+
+    sprite.anchor.x = 0.5;
+    sprite.anchor.y = 0.5;
+    sprite.position.x = d.x * scale3 + imageSize3 / 2;
+    sprite.position.y = d.y * scale3 + imageSize3 / 2;
+    sprite._data = d;
+    d.big = true;
+    stage5.addChild(sprite);
+    sleep = false;
+  }
+
+  function clearBigImages() {
+    while (stage5.children[0]) {
+      stage5.children[0]._data.big = false;
+      stage5.removeChild(stage5.children[0]);
+      sleep = false;
+    }
+  }
+
+  function loadImages() {
+    if (zooming) return;
+    if (zoomedToImage) return;
+
+    if (loadImagesCue.length) {
+      var d = loadImagesCue.pop();
+      if (!d.loaded) {
+        loadMiddleImage(d);
+      }
+    }
+  }
+
+  function nearest(x, y, best, node) {
+    // mike bostock https://bl.ocks.org/mbostock/4343214
+    var x1 = node.x1,
+      y1 = node.y1,
+      x2 = node.x2,
+      y2 = node.y2;
+    node.visited = true;
+    //console.log(node, x , x1 , best.d);
+    //return;
+    // exclude node if point is farther away than best distance in either axis
+    if (
+      x < x1 - best.d ||
+      x > x2 + best.d ||
+      y < y1 - best.d ||
+      y > y2 + best.d
+    ) {
+      return best;
+    }
+    // test point if there is one, potentially updating best
+    var p = node.point;
+    if (p) {
+      p.scanned = true;
+      var dx = p.x - x,
+        dy = p.y - y,
+        d = Math.sqrt(dx * dx + dy * dy);
+      if (d < best.d) {
+        best.d = d;
+        best.p = p;
+      }
+    }
+    // check if kid is on the right or left, and top or bottom
+    // and then recurse on most likely kids first, so we quickly find a
+    // nearby point and then exclude many larger rectangles later
+    var kids = node.nodes;
+    var rl = 2 * x > x1 + x2,
+      bt = 2 * y > y1 + y2;
+    if (kids[bt * 2 + rl]) best = nearest(x, y, best, kids[bt * 2 + rl]);
+    if (kids[bt * 2 + (1 - rl)])
+      best = nearest(x, y, best, kids[bt * 2 + (1 - rl)]);
+    if (kids[(1 - bt) * 2 + rl])
+      best = nearest(x, y, best, kids[(1 - bt) * 2 + rl]);
+    if (kids[(1 - bt) * 2 + (1 - rl)])
+      best = nearest(x, y, best, kids[(1 - bt) * 2 + (1 - rl)]);
+
+    return best;
+  }
+
   return canvas;
 }
