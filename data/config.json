@@ -10,14 +10,17 @@
     "timeline": "data/timeline.csv",
     "layouts": [
       {
-        "title": "Similarity",
-        "url": "data/tsne.csv",
-        "scale": 0.8
+        "title": "Time"
       },
       {
-        "title": "Grid",
+        "title": "Similarity",
+        "url": "data/tsne.csv",
+        "scale": 0.6
+      },
+      {
+        "title": "Color Grid",
         "url": "data/grid.csv",
-        "scale": 0.8
+        "scale": 0.6
       }
     ],
     "textures": {
