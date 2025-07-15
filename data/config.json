@@ -43,7 +43,7 @@
     "timelineBackground": "#f8f4e9"
   },
   "projection": {
-    "columns": 2
+    "columns": 1
   },
   "detail": {
     "structure": [
