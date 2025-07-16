@@ -14,8 +14,6 @@ function Canvas() {
   var width = window.innerWidth - margin.left - margin.right;
   var widthOuter = window.innerWidth;
   var height = window.innerHeight < minHeight ? minHeight : window.innerHeight;
-  console.log("height", height)
-  console.log("width", width)
 
   var scale;
   var scale1 = 1;
@@ -29,7 +27,10 @@ function Canvas() {
   var canvasDomain = [];
   var loadImagesCue = [];
 
-  var resolution = 1; // window.devicePixelRatio || 1;
+  var resolution = 1;
+
+  // NEU: Ein Objekt, um die von Mapbox kommenden Koordinaten zu speichern
+  var mapIndex = {};
 
   var x = d3.scale
     .ordinal()
@@ -115,6 +116,15 @@ function Canvas() {
 
   function canvas() { }
 
+  // NEU: Die fehlende Funktion, die von mapbox.js aufgerufen wird.
+  // Sie empfängt die projizierten Koordinaten und speichert sie im mapIndex.
+  canvas.setMapData = function (projectedData) {
+    console.log("Canvas received map data:", projectedData);
+    projectedData.forEach(function(d) {
+        mapIndex[d.id] = { x: d.x, y: d.y };
+    });
+  };
+
   canvas.margin = margin;
 
   canvas.rangeBand = function () {
@@ -176,7 +186,6 @@ function Canvas() {
     zoomedToImageScale =
       (0.8 / (x.rangeBand() / columns / width)) *
       (state.mode.type === "group" ? 1 : 0.5);
-    // console.log("zoomedToImageScale", zoomedToImageScale)
   };
 
   canvas.initGroupLayout = function () {
@@ -195,13 +204,6 @@ function Canvas() {
         return d.key;
       });
 
-    // if (groupKey == "stadt") {
-    //   console.log("stadt", canvasDomain)
-    //   const missing = canvasDomain.filter(d => !utils.citiesOrder.includes(d))
-    //   console.log("missing", missing)
-    //   canvasDomain = utils.citiesOrder
-    // }
-
     timeDomain = canvasDomain.map(function (d) {
       return {
         key: d,
@@ -214,33 +216,10 @@ function Canvas() {
           })
       };
     });
-    console.log("canvasDomain", canvasDomain);
-    console.log("timeDomain", timeDomain);
-
-
+    
     timeline.init(timeDomain);
-
     x.domain(canvasDomain);
-
   };
-
-  // canvas.setCustomTimelineData = function () {
-  //   timelineData = [{ "x": "54", "key": "200" }, { "x": "182", "key": "1k" }, { "x": "237", "key": "2k" }, { "x": "365", "key": "10k" }, { "x": "420", "key": "20k" }, { "x": "548", "key": "100k" }, { "x": "603", "key": "200k" }, { "x": "731", "key": "1M" }, { "x": "786", "key": "2M" }]
-  //   canvasDomain = timelineData.map(d => d.key)
-  //   timeDomain = timelineData.map(function (d) {
-  //     return {
-  //       key: d.key,
-  //       values: [],
-  //       type: "static",
-
-  //     };
-  //   });
-  //   timeline.init(timeDomain);
-  //   x.domain(canvasDomain);
-
-  //   console.log("canvasDomain", canvasDomain);
-  //   console.log("timeDomain", timeDomain);
-  // }
 
   canvas.init = function (_data, _timeline, _config) {
     data = _data;
@@ -257,12 +236,6 @@ function Canvas() {
     if (config.loader.textures.big) {
       imageSize3 = config.loader.textures.big.size;
     }
-
-    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-    // PIXI.settings.SPRITE_MAX_TEXTURES = Math.min(
-    //   PIXI.settings.SPRITE_MAX_TEXTURES,
-    //   16
-    // );
 
     var renderOptions = {
       resolution: resolution,
@@ -292,9 +265,6 @@ function Canvas() {
 
     canvas.initGroupLayout();
 
-    //canvas.makeScales();
-
-    // add preview pics
     data.forEach(function (d, i) {
       var sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
 
@@ -322,41 +292,12 @@ function Canvas() {
         mousemove(d);
         touchstart = new Date() * 1;
       })
-      // .on("touchend", function (d, i, nodes, event) {
-      //   var touchtime = new Date() * 1 - touchstart;
-      //   if (touchtime < 20) {
-      //     console.log("touched", touchtime, d, i, nodes, event);
-      //     return;
-      //   }
-      // })
-      // .on("touchend", function (d) {
-      //   var touchtime = new Date() * 1 - touchstart;
-      //   if (touchtime > 250) {
-      //     console.log("longtouch", touchtime);
-      //     return;
-      //   }
-      //   if (selectedImageDistance > 15) return;
-      //   if (selectedImage && !selectedImage.id) return;
-      //   if (selectedImage && !selectedImage.active) return;
-      //   if (drag) return;
-
-      //   console.log("touch zoom")
-
-      //   // if (Math.abs(zoomedToImageScale - scale) < 0.1) {
-      //   //   canvas.resetZoom();
-      //   // } else {
-      //   //   zoomToImage(selectedImage, 1400 / Math.sqrt(Math.sqrt(scale)));
-      //   // }
-
-      //   // zoomToImage(selectedImage, 1400 / Math.sqrt(Math.sqrt(scale)));
-      // })
       .on("click", function () {
 
         var clicktime = new Date() * 1 - lastClick;
         if (clicktime < 250) return;
         lastClick = new Date() * 1;
 
-        console.log("click");
         if (spriteClick) {
           spriteClick = false;
           return;
@@ -367,30 +308,19 @@ function Canvas() {
         if (selectedImageDistance > cursorCutoff) return;
         if (selectedImage && !selectedImage.active) return;
         if (timelineHover) return;
-        // console.log(selectedImage)
 
         if (Math.abs(zoomedToImageScale - scale) < 0.1) {
           canvas.resetZoom();
-          // console.log("reset zoom")
         } else {
-          // console.log("zoom to image", zoomedToImageScale, scale)
           zoomToImage(selectedImage, 1400 / Math.sqrt(Math.sqrt(scale)));
         }
       });
 
-    // disable right click
     vizContainer.on("contextmenu", function () {
       d3.event.preventDefault();
     });
 
-
-
-    //canvas.makeScales();
-    //canvas.project();
     animate();
-
-    // selectedImage = data.find(d => d.id == 88413)
-    // showDetail(selectedImage)
     state.init = true;
   };
 
@@ -438,13 +368,7 @@ function Canvas() {
     );
 
     selectedImageDistance = best && best.d || 1000;
-    // console.log(cursorCutoff, scale, scale1, selectedImageDistance)
-
-    // if (best.p && selectedImageDistance > 7) {
-    //   //selectedImage = null;
-    //   //zoom.center(null);
-    //   container.style("cursor", "default");
-    // } else {
+    
     if (best && best.p && !zoomedToImage) {
       var d = best.p;
       var center = [
@@ -460,7 +384,6 @@ function Canvas() {
         ? "pointer"
         : "default";
     });
-    // }
   }
 
   function stackLayout(data, invert) {
@@ -515,7 +438,6 @@ function Canvas() {
       })
       .entries(data);
 
-    // y scale for state.mode.y (e.g. "kaufpreis")
     var yExtent = d3.extent(data, function (d) { return +d[state.mode.y]; })
     var yRange = [2 * (rangeBand / columns), height * 0.7]
 
@@ -524,8 +446,6 @@ function Canvas() {
     var yscale = d3.scale.linear()
       .domain(yExtent)
       .range(yRange);
-
-    // console.log("yscale", yscale.domain(), yscale.range())
 
     years.forEach(function (year) {
       var startX = x(year.key);
@@ -539,7 +459,6 @@ function Canvas() {
 
         d.x = startX + (i % columns) * (rangeBand / columns);
         d.y = (invert ? 1 : -1) * yscale(d[state.mode.y]);
-        //d.y = (invert ? 1 : -1) * (row * (rangeBand / columns));
 
         d.x1 = d.x * scale1 + imageSize / 2;
         d.y1 = d.y * scale1 + imageSize / 2;
@@ -553,19 +472,8 @@ function Canvas() {
           d.sprite2.position.x = d.x * scale2 + imageSize2 / 2;
           d.sprite2.position.y = d.y * scale2 + imageSize2 / 2;
         }
-
-        //d.order = (invert ? 1 : 1) * (total - i);
       });
     });
-
-    // data.filter(d => !d[state.mode.y]).forEach(function (d, i) {
-    //   d.x = 0;
-    //   d.y = 0;
-    //   d.active = false;
-    //   // d.sprite.visible = false;
-    //   // if (d.sprite2) d.sprite2.visible = false;
-    // })
-
   }
 
   canvas.distance = function (a, b) {
@@ -618,7 +526,6 @@ function Canvas() {
         }
 
         d.sprite2.visible = d.sprite2.alpha > 0.1;
-        //else d.sprite2.visible = d.visible;
       }
     });
     return sleep;
@@ -639,10 +546,7 @@ function Canvas() {
         columns = config.projection.columns;
       }
     }
-    // if (layout.timeline) {
-    //   canvas.setCustomTimelineData()
-    // }
-
+    
     timeline.setDisabled(layout.type != "group" && !layout.timeline);
     canvas.makeScales();
     canvas.project();
@@ -660,19 +564,6 @@ function Canvas() {
     renderer.render(stage);
   }
 
-  // function zoomToYear(d) {
-  //   var xYear = x(d.year);
-  //   var scale = 1 / ((rangeBand * 4) / width);
-  //   var padding = rangeBand * 1.5;
-  //   var translateNow = [-scale * (xYear - padding), -scale * (height + d.y)];
-
-  //   vizContainer
-  //     .call(zoom.translate(translate).event)
-  //     .transition()
-  //     .duration(2000)
-  //     .call(zoom.scale(scale).translate(translateNow).event);
-  // }
-
   function zoomToImage(d, duration) {
     state.zoomingToImage = true;
     vizContainer.style("pointer-events", "none");
@@ -680,27 +571,13 @@ function Canvas() {
     loadMiddleImage(d);
     d3.select(".tagcloud").classed("hide", true);
     
-    // var padding = (state.mode.type === "group" ? 0.1 : 0.8) * rangeBandImage;
-    // var sidbar = width / 8;
-    // // var scale = d.sprite.width / rangeBandImage * columns * 1.3;
-    // var scale = scale1 * 4;
-    // console.log(d, imgPadding, scale, scale1, padding, scale1, d.x, d.sprite.width);
-
-    // var translateNow = [
-    //   -scale * (d.x + margin.left / scale1 / 6 ),
-    //   -scale * (height + d.y + (margin.top / scale1 / 2)),
-    // ];
-
     var padding = rangeBandImage / 2;
-    //var scale = 1 / (rangeBandImage / (width * 0.8));
     var max = Math.max(width, height);
     var scale = 1 / (rangeBandImage / (max * 0.6));
     var translateNow = [
       -scale * (d.x - padding) - (max * 0.3) / 2 + margin.left,
       -scale * (height + d.y + padding) - margin.top + height / 2,
     ];
-
-    // console.log(translateNow)
 
     zoomedToImageScale = scale;
 
@@ -720,31 +597,16 @@ function Canvas() {
         showDetail(d);
         loadBigImage(d, "click");
         state.zoomingToImage = false;
-        console.log("zoomedToImage", zoomedToImage);
         vizContainer.style("pointer-events", "auto");
       });
   }
   canvas.zoomToImage = zoomToImage;
 
   function showDetail(d) {
-    // console.log("show detail", d)
-    // console.log(detailVue, detailVue._data.item)
-
     detailContainer.select(".outer").node().scrollTop = 0;
-
     detailContainer.classed("hide", false).classed("sneak", utils.isMobile());
 
-    // needs to be done better
-    // for (field in selectedImage) {
-    //   if (field[0] === "_") detailData[field] = selectedImage[field];
-    // }
-
     var detailData = {};
-    // var activeFields = config.detail.structure
-    //   .filter(function (field, index) {
-    //     return selectedImage[field.source] && selectedImage[field.source] !== "";
-    //   })
-    // console.log("activeFields", activeFields)
 
     config.detail.structure.forEach(function (field) {
       var val = selectedImage[field.source];
@@ -753,15 +615,10 @@ function Canvas() {
       if (field.fields && field.fields.length) {
         field.fields.forEach(function (subfield) {
           var val = selectedImage[subfield];
-          // console.log("subfield", subfield, val)
           if (val && val !== "") detailData[subfield] = val;
         })
       }
-      // detailData[field.source] = selectedImage[field.source];
     })
-    // console.log("showDetail", detailData)
-
-    // detailVue._data.structure = activeFields;
 
     detailData["_id"] = selectedImage.id;
     detailData["_keywords"] = selectedImage.keywords || "None";
@@ -775,7 +632,6 @@ function Canvas() {
   canvas.showDetail = showDetail;
 
   canvas.changePage = function (id, page) {
-    console.log("changePage", id, page, selectedImage);
     selectedImage.page = page;
     detailVue._data.page = page;
     clearBigImages();
@@ -805,7 +661,6 @@ function Canvas() {
     scale = d3.event.scale;
     if (!startTranslate) startTranslate = translate;
     drag = startTranslate && translate !== startTranslate;
-    // check borders
     var x1 = (-1 * translate[0]) / scale;
     var x2 = x1 + widthOuter / scale;
 
@@ -837,7 +692,6 @@ function Canvas() {
     }
 
     if (zoomedToImage && zoomedToImageScale * 0.8 > scale) {
-      // console.log("clear")
       zoomedToImage = false;
       state.lastZoomed = 0;
       showAllImages();
@@ -847,29 +701,17 @@ function Canvas() {
 
     timeline.update(x1, x2, scale, translate, scale1);
 
-    // toggle zoom overlays
     if (scale > zoomBarrier && !zoomBarrierState) {
       zoomBarrierState = true;
       d3.select(".tagcloud, .crossfilter").classed("hide", true);
-      //d3.select(".filter").classed("hide", true);
       d3.select(".searchbar").classed("hide", true);
       d3.select(".infobar").classed("sneak", true);
-      // d3.select(".filterReset").classed("hide", true);
-      //d3.select(".filterReset").text("Zur Übersicht")
-      // console.log("zoomBarrierState", zoomBarrierState)
     }
     if (scale < zoomBarrier && zoomBarrierState) {
       zoomBarrierState = false;
       d3.select(".tagcloud, .crossfilter").classed("hide", false);
-      //d3.select(".filter").classed("hide", false);
       d3.select(".vorbesitzerinOuter").classed("hide", false);
-      // d3.select(".infobar").classed("sneak", false);
       d3.select(".searchbar").classed("hide", false);
-      //d3.select(".filterReset").text("Filter zurücksetzen")
-
-      // d3.select(".filterReset").classed("hide", false);
-      // console.log("zoomBarrierState", zoomBarrierState)
-
     }
 
     stage2.scale.x = d3.event.scale;
@@ -910,12 +752,42 @@ function Canvas() {
     canvas.wakeup();
   };
 
-  // canvas.project = function () {
-  //     sleep = false
-  //     canvas.split();
-  //     canvas.resetZoom();
-  // }
+  // NEU: Eine Funktion, die die Bilder anhand der Kartenkoordinaten anordnet.
+  function projectMap() {
+    console.log("Projecting in Map mode.");
+    data.forEach(function (d) {
+        var mapPosition = mapIndex[d.id];
+        if (mapPosition) {
+            // Setzt die x/y-Position basierend auf den Map-Daten
+            d.x = mapPosition.x;
+            // Passt die y-Koordinate an das Koordinatensystem der Canvas an
+            d.y = mapPosition.y - height; 
+        } else {
+            // Versteckt Bilder, für die keine Koordinaten gefunden wurden
+            d.x = -10000;
+            d.y = -10000;
+        }
 
+        // Dieser Teil ist für alle Layouts gleich und berechnet die finale Sprite-Position
+        d.x1 = d.x * scale1 + imageSize / 2;
+        d.y1 = d.y * scale1 + imageSize / 2;
+
+        if (d.sprite.position.x == 0) {
+            d.sprite.position.x = d.x1;
+            d.sprite.position.y = d.y1;
+        }
+
+        if (d.sprite2) {
+            d.sprite2.position.x = d.x * scale2 + imageSize2 / 2;
+            d.sprite2.position.y = d.y * scale2 + imageSize2 / 2;
+        }
+    });
+
+    quadtree = Quadtree(data);
+  }
+
+
+  // ANGEPASST: Diese Funktion entscheidet jetzt, welches Layout verwendet wird.
   canvas.project = function () {
     ping();
     sleep = false;
@@ -930,7 +802,11 @@ function Canvas() {
       }
     });
 
-    if (state.mode.type === "group") {
+    // NEUE Logik: Prüft, ob der Kartenmodus aktiv ist.
+    if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
+        projectMap();
+        cursorCutoff = (1 / scale1) * imageSize * 1;
+    } else if (state.mode.type === "group") {
       canvas.split();
       cursorCutoff = (1 / scale1) * imageSize * 1;
     } else {
@@ -975,15 +851,11 @@ function Canvas() {
           tsneEntry[0] * dimension + width / 2 - dimension / 2 + margin.left;
         d.y = -1 * tsneEntry[1] * dimension;
       } else {
-        // console.log("not found", d)
         d.alpha = 0;
         d.x = 0;
         d.y = 0;
         d.active = false;
       }
-      // var tsneEntry = tsne.find(function (t) {
-      //     return t.id == d.id
-      // })
     });
 
     data.forEach(function (d) {
@@ -1002,24 +874,16 @@ function Canvas() {
     });
 
     quadtree = Quadtree(data);
-    //chart.resetZoom();
   };
 
   canvas.resetZoom = function (callback) {
-    console.log(scale)
     var duration = scale > 1 ? 1000 : 0;
 
     extent = d3.extent(data, function (d) {
       return d.y;
     });
 
-    // var y = -extent[1] - bottomPadding;
-    // y = extent[1] / -3 - bottomPadding;
-    // // this needs a major cleanup
-    // y = Math.max(y, -bottomPadding);
     var y = -bottomPadding;
-
-    // console.log("resetZoom", y,extent)
 
     vizContainer
       .call(zoom.translate(translate).event)
@@ -1040,7 +904,6 @@ function Canvas() {
     var inactive = data.filter(function (d) {
       return !d.active;
     });
-    console.log("inactive", inactive);
     layout(inactive, true);
     quadtree = Quadtree(data);
   };
@@ -1207,15 +1070,12 @@ function Canvas() {
   }
 
   function nearest(x, y, best, node) {
-    // mike bostock https://bl.ocks.org/mbostock/4343214
     var x1 = node.x1,
       y1 = node.y1,
       x2 = node.x2,
       y2 = node.y2;
     node.visited = true;
-    //console.log(node, x , x1 , best.d);
-    //return;
-    // exclude node if point is farther away than best distance in either axis
+    
     if (
       x < x1 - best.d ||
       x > x2 + best.d ||
@@ -1224,7 +1084,7 @@ function Canvas() {
     ) {
       return best;
     }
-    // test point if there is one, potentially updating best
+    
     var p = node.point;
     if (p) {
       p.scanned = true;
@@ -1236,9 +1096,7 @@ function Canvas() {
         best.p = p;
       }
     }
-    // check if kid is on the right or left, and top or bottom
-    // and then recurse on most likely kids first, so we quickly find a
-    // nearby point and then exclude many larger rectangles later
+    
     var kids = node.nodes;
     var rl = 2 * x > x1 + x2,
       bt = 2 * y > y1 + y2;
@@ -1255,3 +1113,6 @@ function Canvas() {
 
   return canvas;
 }
+```
+
+Die entscheidenden Änderungen sind mit `// NEU` und `// ANGEPASST` kommentiert. Damit sollte der `TypeError` behoben sein und deine Visualisierung einen riesigen Schritt weiter se
