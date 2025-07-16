@@ -29,7 +29,6 @@ function Canvas() {
 
   var resolution = 1;
 
-  // NEU: Ein Objekt, um die von Mapbox kommenden Koordinaten zu speichern
   var mapIndex = {};
 
   var x = d3.scale
@@ -91,6 +90,7 @@ function Canvas() {
   var touchstart = 0;
   var vizContainer;
   var spriteClick = false;
+  var mousePos;
 
   var state = {
     lastZoomed: 0,
@@ -116,8 +116,6 @@ function Canvas() {
 
   function canvas() { }
 
-  // NEU: Die fehlende Funktion, die von mapbox.js aufgerufen wird.
-  // Sie empfängt die projizierten Koordinaten und speichert sie im mapIndex.
   canvas.setMapData = function (projectedData) {
     console.log("Canvas received map data:", projectedData);
     projectedData.forEach(function(d) {
@@ -146,6 +144,7 @@ function Canvas() {
   canvas.x = x;
   canvas.y = yscale;
 
+  // ÜBERNOMMEN AUS PANKOW-BEISPIEL: Korrekte Behandlung bei Fenstergrößen-Änderung
   canvas.resize = function () {
     if (!state.init) return;
     width = window.innerWidth - margin.left - margin.right;
@@ -153,7 +152,13 @@ function Canvas() {
     widthOuter = window.innerWidth;
     renderer.resize(width + margin.left + margin.right, height);
     canvas.makeScales();
-    canvas.project();
+    if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
+      map.project();
+      canvas.project();
+      canvas.resetZoom();
+    } else {
+      canvas.project();
+    }
   };
 
   canvas.makeScales = function () {
@@ -353,6 +358,7 @@ function Canvas() {
     if (timelineHover) return;
 
     var mouse = d3.mouse(vizContainer.node());
+    mousePos = mouse; // WICHTIG: Speichert die Mausposition für die Kartensynchronisation
     var p = toScreenPoint(mouse);
 
     var distance = 200;
@@ -537,17 +543,9 @@ function Canvas() {
 
   canvas.setMode = function (layout) {
     state.mode = layout;
-
-    if (layout.type == "group") {
-      canvas.initGroupLayout();
-      if(layout.columns){
-        columns = layout.columns;
-      } else {
-        columns = config.projection.columns;
-      }
-    }
     
-    timeline.setDisabled(layout.type != "group" && !layout.timeline);
+    // Deaktiviert die Interaktion mit der Zeitleiste, wenn nicht im Zeit-Modus
+    timeline.setDisabled(layout.title.toLowerCase() !== "time");
     canvas.makeScales();
     canvas.project();
   };
@@ -656,6 +654,7 @@ function Canvas() {
 
   var zoomBarrierState = false;
 
+  // ÜBERNOMMEN AUS PANKOW-BEISPIEL: Die Kernlogik zur Synchronisation
   function zoomed() {
     translate = d3.event.translate;
     scale = d3.event.scale;
@@ -664,7 +663,8 @@ function Canvas() {
     var x1 = (-1 * translate[0]) / scale;
     var x2 = x1 + widthOuter / scale;
 
-    if (d3.event.sourceEvent != null) {
+    // Verhindert das "Herausziehen" der Visualisierung aus dem Bild
+    if (d3.event.sourceEvent != null && state.mode.title.toLowerCase() !== "karte") {
       if (x1 < 0) {
         translate[0] = 0;
       } else if (x2 > widthOuter) {
@@ -677,20 +677,6 @@ function Canvas() {
       x2 = x1 + width / scale;
     }
 
-    if (
-      zoomedToImageScale != 0 &&
-      scale > zoomedToImageScale * 0.9 &&
-      !zoomedToImage &&
-      selectedImage &&
-      selectedImage.type == "image"
-    ) {
-      zoomedToImage = true;
-      zoom.center(null);
-      zoomedToImageScale = scale;
-      hideTheRest(selectedImage);
-      showDetail(selectedImage);
-    }
-
     if (zoomedToImage && zoomedToImageScale * 0.8 > scale) {
       zoomedToImage = false;
       state.lastZoomed = 0;
@@ -700,6 +686,11 @@ function Canvas() {
     }
 
     timeline.update(x1, x2, scale, translate, scale1);
+
+    // WICHTIG: Synchronisiert den Zoom mit der Karte, wenn im Kartenmodus
+    if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
+        map.zoom(selectedImage, mousePos, scale, translate, imageSize);
+    }
 
     if (scale > zoomBarrier && !zoomBarrierState) {
       zoomBarrierState = true;
@@ -752,23 +743,19 @@ function Canvas() {
     canvas.wakeup();
   };
 
-  // NEU: Eine Funktion, die die Bilder anhand der Kartenkoordinaten anordnet.
+  // ÜBERNOMMEN AUS PANKOW-BEISPIEL: Bessere Logik zur Anordnung der Bilder im Kartenmodus
   function projectMap() {
     console.log("Projecting in Map mode.");
     data.forEach(function (d) {
         var mapPosition = mapIndex[d.id];
         if (mapPosition) {
-            // Setzt die x/y-Position basierend auf den Map-Daten
-            d.x = mapPosition.x;
-            // Passt die y-Koordinate an das Koordinatensystem der Canvas an
-            d.y = mapPosition.y - height; 
+            d.x = mapPosition.x - margin.left - imgPadding;
+            d.y = mapPosition.y - imgPadding - height;
         } else {
-            // Versteckt Bilder, für die keine Koordinaten gefunden wurden
             d.x = -10000;
             d.y = -10000;
         }
 
-        // Dieser Teil ist für alle Layouts gleich und berechnet die finale Sprite-Position
         d.x1 = d.x * scale1 + imageSize / 2;
         d.y1 = d.y * scale1 + imageSize / 2;
 
@@ -786,34 +773,36 @@ function Canvas() {
     quadtree = Quadtree(data);
   }
 
-
   // ANGEPASST: Diese Funktion entscheidet jetzt, welches Layout verwendet wird.
   canvas.project = function () {
     ping();
     sleep = false;
-    var scaleFactor = state.mode.type == "group" ? 0.9 : tsneScale[state.mode.title] || 0.5;
+    
+    // Setzt den Skalierungsfaktor basierend auf dem Modus
     data.forEach(function (d) {
-      d.scaleFactor = scaleFactor;
-      d.sprite.scale.x = d.scaleFactor;
-      d.sprite.scale.y = d.scaleFactor;
-      if (d.sprite2) {
-        d.sprite2.scale.x = d.scaleFactor;
-        d.sprite2.scale.y = d.scaleFactor;
-      }
+        if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
+            d.scaleFactor = 0.8;
+        } else if (state.mode.type === "group") {
+            d.scaleFactor = 0.9;
+        } else {
+            d.scaleFactor = tsneScale[state.mode.title] || 0.5;
+        }
+        d.sprite.scale.x = d.sprite.scale.y = d.scaleFactor;
+        if (d.sprite2) {
+            d.sprite2.scale.x = d.sprite2.scale.y = d.scaleFactor;
+        }
     });
 
-    // NEUE Logik: Prüft, ob der Kartenmodus aktiv ist.
+    // Wählt die korrekte Projektionsmethode
     if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
         projectMap();
-        cursorCutoff = (1 / scale1) * imageSize * 1;
     } else if (state.mode.type === "group") {
       canvas.split();
-      cursorCutoff = (1 / scale1) * imageSize * 1;
     } else {
       canvas.projectTSNE();
-      cursorCutoff = (1 / scale1) * imageSize * 1;
     }
-
+    
+    cursorCutoff = (1 / scale1) * imageSize * 1;
     canvas.resetZoom();
 
     zoomedToImageScale =
@@ -1113,6 +1102,3 @@ function Canvas() {
 
   return canvas;
 }
-```
-
-Die entscheidenden Änderungen sind mit `// NEU` und `// ANGEPASST` kommentiert. Damit sollte der `TypeError` behoben sein und deine Visualisierung einen riesigen Schritt weiter se
