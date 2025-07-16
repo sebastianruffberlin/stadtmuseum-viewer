@@ -21,7 +21,10 @@
         "title": "Color Grid",
         "url": "data/grid.csv",
         "scale": 2.5
-      }
+      },
+      {
+        "title": "karte"
+      },
     ],
     "textures": {
       "medium": {
