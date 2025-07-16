@@ -47,23 +47,57 @@ function Mapbox() {
     window.mapbox = map;
 
     map.on("load", function () {
-      // Optional: Lade eine GeoJSON-Datei für die Bezirksgrenze
-      // Wenn du diese Datei nicht hast, kannst du die nächsten 12 Zeilen auskommentieren.
-      var geojsonUrl = "data/pankow.geojson";
-      map.addSource("pankow", { type: "geojson", data: geojsonUrl });
-      map.addLayer({
-        id: "pankow",
-        type: "line",
-        source: "pankow",
-        layout: {},
-        paint: {
-          "line-color": "#ED6B4C",
-          "line-width": 3,
-        },
-      });
-      mapbox.project();
-    });
-  };
+  var geojsonUrl = "data/berlin_bezirke.geojson"; // Dein neuer Dateiname
+  
+  // 1. Datenquelle hinzufügen
+  map.addSource("bezirke", {
+    type: "geojson",
+    data: geojsonUrl
+  });
+
+  // 2. Eine Ebene für die Füllfarbe der Bezirke hinzufügen
+  map.addLayer({
+    id: "bezirke-fill",
+    type: "fill",
+    source: "bezirke",
+    paint: {
+      "fill-color": "#ED6B4C", // Die Füllfarbe (z.B. das Orange)
+      "fill-opacity": 0.2     // Eine leichte Transparenz
+    }
+  });
+
+  // 3. Eine Ebene für die Umrandung der Bezirke hinzufügen
+  map.addLayer({
+    id: "bezirke-borders",
+    type: "line",
+    source: "bezirke",
+    paint: {
+      "line-color": "#ED6B4C", // Die Linienfarbe
+      "line-width": 2
+    }
+  });
+
+  // 4. Interaktivität: Popup beim Klick auf einen Bezirk
+  map.on('click', 'bezirke-fill', function (e) {
+    // HINWEIS: 'BEZIRKSNAME' ist eine Eigenschaft in der GeoJSON-Datei.
+    // Prüfe in deiner Datei, wie die Spalte mit dem Namen heißt (z.B. 'NAME' oder 'BEZ_NAME') und passe es hier an.
+    new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML('<h3>' + e.features[0].properties.BEZIRKSNAME + '</h3>')
+      .addTo(map);
+  });
+
+  // Ändere den Mauszeiger zu einem "Pointer", wenn er über einem Bezirk ist
+  map.on('mouseenter', 'bezirke-fill', function () {
+    map.getCanvas().style.cursor = 'pointer';
+  });
+  map.on('mouseleave', 'bezirke-fill', function () {
+    map.getCanvas().style.cursor = '';
+  });
+
+  // Wichtig: Rufe die Projektion auf, nachdem alles geladen ist
+  mapbox.project();
+});
 
   mapbox.project = function () {
     console.log("Projecting map data to canvas.");
