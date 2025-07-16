@@ -117,7 +117,6 @@ function Canvas() {
   function canvas() { }
 
   canvas.setMapData = function (projectedData) {
-    console.log("Canvas received map data:", projectedData);
     projectedData.forEach(function(d) {
         mapIndex[d.id] = { x: d.x, y: d.y };
     });
@@ -144,7 +143,6 @@ function Canvas() {
   canvas.x = x;
   canvas.y = yscale;
 
-  // ÜBERNOMMEN AUS PANKOW-BEISPIEL: Korrekte Behandlung bei Fenstergrößen-Änderung
   canvas.resize = function () {
     if (!state.init) return;
     width = window.innerWidth - margin.left - margin.right;
@@ -195,7 +193,6 @@ function Canvas() {
 
   canvas.initGroupLayout = function () {
     var groupKey = state.mode.groupKey
-    console.log("initGroupLayout", groupKey);
     canvasDomain = d3
       .nest()
       .key(function (d) {
@@ -358,7 +355,7 @@ function Canvas() {
     if (timelineHover) return;
 
     var mouse = d3.mouse(vizContainer.node());
-    mousePos = mouse; // WICHTIG: Speichert die Mausposition für die Kartensynchronisation
+    mousePos = mouse;
     var p = toScreenPoint(mouse);
 
     var distance = 200;
@@ -386,7 +383,8 @@ function Canvas() {
     }
 
     container.style("cursor", function () {
-      return selectedImageDistance < cursorCutoff && selectedImage.active
+      // KORRIGIERT: Fügt eine Prüfung hinzu, ob selectedImage existiert.
+      return selectedImage && selectedImageDistance < cursorCutoff && selectedImage.active
         ? "pointer"
         : "default";
     });
@@ -544,7 +542,6 @@ function Canvas() {
   canvas.setMode = function (layout) {
     state.mode = layout;
     
-    // Deaktiviert die Interaktion mit der Zeitleiste, wenn nicht im Zeit-Modus
     timeline.setDisabled(layout.title.toLowerCase() !== "time");
     canvas.makeScales();
     canvas.project();
@@ -654,7 +651,6 @@ function Canvas() {
 
   var zoomBarrierState = false;
 
-  // ÜBERNOMMEN AUS PANKOW-BEISPIEL: Die Kernlogik zur Synchronisation
   function zoomed() {
     translate = d3.event.translate;
     scale = d3.event.scale;
@@ -663,7 +659,6 @@ function Canvas() {
     var x1 = (-1 * translate[0]) / scale;
     var x2 = x1 + widthOuter / scale;
 
-    // Verhindert das "Herausziehen" der Visualisierung aus dem Bild
     if (d3.event.sourceEvent != null && state.mode.title.toLowerCase() !== "karte") {
       if (x1 < 0) {
         translate[0] = 0;
@@ -687,7 +682,6 @@ function Canvas() {
 
     timeline.update(x1, x2, scale, translate, scale1);
 
-    // WICHTIG: Synchronisiert den Zoom mit der Karte, wenn im Kartenmodus
     if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
         map.zoom(selectedImage, mousePos, scale, translate, imageSize);
     }
@@ -743,9 +737,7 @@ function Canvas() {
     canvas.wakeup();
   };
 
-  // ÜBERNOMMEN AUS PANKOW-BEISPIEL: Bessere Logik zur Anordnung der Bilder im Kartenmodus
   function projectMap() {
-    console.log("Projecting in Map mode.");
     data.forEach(function (d) {
         var mapPosition = mapIndex[d.id];
         if (mapPosition) {
@@ -773,12 +765,10 @@ function Canvas() {
     quadtree = Quadtree(data);
   }
 
-  // ANGEPASST: Diese Funktion entscheidet jetzt, welches Layout verwendet wird.
   canvas.project = function () {
     ping();
     sleep = false;
     
-    // Setzt den Skalierungsfaktor basierend auf dem Modus
     data.forEach(function (d) {
         if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
             d.scaleFactor = 0.8;
@@ -793,7 +783,6 @@ function Canvas() {
         }
     });
 
-    // Wählt die korrekte Projektionsmethode
     if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
         projectMap();
     } else if (state.mode.type === "group") {
@@ -1059,6 +1048,7 @@ function Canvas() {
   }
 
   function nearest(x, y, best, node) {
+    if (!node) return best; // Sicherheitsprüfung, falls quadtree leer ist
     var x1 = node.x1,
       y1 = node.y1,
       x2 = node.x2,
