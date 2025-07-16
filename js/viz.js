@@ -28,7 +28,16 @@ function init() {
 
   console.log(baseUrl);
 
-  d3.json(baseUrl.config || "data/config.json", function (config) {
+  d3.json("data/config.json", function (error, config) {
+    if (error) {
+        console.error("FEHLER: Die Datei 'data/config.json' konnte nicht geladen werden.");
+        console.error("Bitte prüfe, ob der Pfad und Dateiname korrekt sind und du einen Webserver verwendest.");
+        console.error("Technische Details:", error);
+        // Stoppt die Ausführung, um weitere Fehler zu vermeiden
+        return; 
+    }
+
+    // Ab hier wissen wir, dass 'config' erfolgreich geladen wurde
     config.baseUrl = baseUrl;
     utils.initConfig(config);
 
