@@ -1,7 +1,7 @@
 {
   "project": {
     "name": "Stadtmuseum Viewer",
-    "quality": 3
+    "quality": 1
   },
   "delimiter": ";",
   "loader": {
