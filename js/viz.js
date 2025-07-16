@@ -16,10 +16,19 @@ var map;
 init();
 
 function init() {
-  // Registriere den pixi-packer-parser für sharpsheet Format
+  // Für PIXI.js 5.x muss der Parser anders registriert werden
   if (typeof PIXI !== 'undefined' && PIXI.Loader) {
-    PIXI.Loader.registerPlugin(pixiPackerParser(PIXI));
-    console.log('pixi-packer-parser wurde registriert');
+    // Überprüfe die PIXI-Version
+    console.log('PIXI Version:', PIXI.VERSION);
+    
+    // Für PIXI 5.x verwende Loader.shared.use() statt registerPlugin
+    if (PIXI.Loader.shared) {
+      PIXI.Loader.shared.use(pixiPackerParser(PIXI));
+      console.log('pixi-packer-parser mit Loader.shared.use() registriert');
+    } else {
+      console.log('Versuche registerPlugin...');
+      PIXI.Loader.registerPlugin(pixiPackerParser(PIXI));
+    }
   } else {
     console.error('PIXI oder PIXI.Loader ist nicht verfügbar!');
   }
@@ -69,11 +78,10 @@ function init() {
           })
         }
 
-        // Verwende PIXI.Loader statt LoaderSprites
-        const pixiLoader = new PIXI.Loader();
-        pixiLoader.add("spritesheet", makeUrl(baseUrl.path, config.loader.textures.medium.url));
+        // Verwende PIXI.Loader.shared statt new PIXI.Loader()
+        PIXI.Loader.shared.add("spritesheet", makeUrl(baseUrl.path, config.loader.textures.medium.url));
         
-        pixiLoader.load(function(loader, resources) {
+        PIXI.Loader.shared.load(function(loader, resources) {
           console.log('PIXI Loader finished. Resources:', Object.keys(resources));
           
           // Detaillierte Analyse der geladenen Ressource
@@ -118,7 +126,7 @@ function init() {
         });
         
         // Fehlerbehandlung hinzufügen
-        pixiLoader.onError.add(function(error) {
+        PIXI.Loader.shared.onError.add(function(error) {
           console.error('PIXI Loader Error:', error);
         });
       });
