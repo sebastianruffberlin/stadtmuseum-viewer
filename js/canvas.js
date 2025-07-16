@@ -191,10 +191,6 @@ function Canvas() {
       (state.mode.type === "group" ? 1 : 0.5);
   };
 
-  // =================================================================
-  // FIX 1: Stellt sicher, dass die Jahre numerisch sortiert werden,
-  // um den NaN-Fehler in der "Time"-Ansicht zu beheben.
-  // =================================================================
   canvas.initGroupLayout = function () {
     var groupKey = state.mode.groupKey;
     canvasDomain = d3
@@ -204,7 +200,6 @@ function Canvas() {
       })
       .entries(data.concat(timelineData))
       .sort(function (a, b) {
-        // KORREKTUR: Explizite numerische Sortierung
         return Number(a.key) - Number(b.key);
       })
       .map(function (d) {
@@ -388,7 +383,6 @@ function Canvas() {
     }
 
     container.style("cursor", function () {
-      // KORRIGIERT: Fügt eine Prüfung hinzu, ob selectedImage existiert.
       return selectedImage && selectedImageDistance < cursorCutoff && selectedImage.active
         ? "pointer"
         : "default";
@@ -778,8 +772,9 @@ function Canvas() {
         if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
             d.scaleFactor = 0.8;
         } else if (state.mode.type === "group") {
-            d.scaleFactor = 0.9;
+            d.scaleFactor = 0.9 * (4 / columns); 
         } else {
+            // KORREKTUR: Der 'scale'-Wert aus der config.json steuert nun direkt die Sprite-Größe
             d.scaleFactor = tsneScale[state.mode.title] || 0.5;
         }
         d.sprite.scale.x = d.sprite.scale.y = d.scaleFactor;
@@ -816,6 +811,8 @@ function Canvas() {
       return d.active;
     });
 
+    // KORREKTUR: Die Dimension des Layouts ist jetzt fest, um den Bildschirm auszufüllen.
+    // Die Streuung wird durch die Sprite-Größe (scaleFactor) gesteuert.
     var dimension = Math.min(width, height) * 0.8;
 
     inactive.forEach(function (d, i) {
@@ -827,14 +824,10 @@ function Canvas() {
     });
 
     active.forEach(function (d) {
-      var factor = height / 2;
       var tsneEntry = tsneIndex[state.mode.title][d.id];
       if (tsneEntry) {
         d.x =
           tsneEntry[0] * dimension + width / 2 - dimension / 2 + margin.left;
-        // =================================================================
-        // FIX 2: Zentriert die Y-Position für die Grid- und t-SNE-Ansichten.
-        // =================================================================
         d.y = -1 * tsneEntry[1] * dimension - (height / 2) + (dimension / 2);
       } else {
         d.alpha = 0;
