@@ -401,7 +401,6 @@ function Canvas() {
     years.forEach(function (year) {
       var startX = x(year.key);
       if (isNaN(startX)) {
-        // Fallback, falls startX ungültig ist
         startX = 0;
       }
       var total = year.values.length;
@@ -772,7 +771,6 @@ function Canvas() {
     ping();
     sleep = false;
     
-    // Setzt die Domain für die x-Skala bei jeder Projektion neu, um Konsistenz zu gewährleisten
     x.domain(canvasDomain);
     canvas.makeScales();
 
@@ -782,8 +780,7 @@ function Canvas() {
         } else if (state.mode.type === "group") {
             d.scaleFactor = 0.9 * (4 / columns); 
         } else {
-            // Der 'scale'-Wert aus der config.json steuert nun direkt die Sprite-Größe
-            d.scaleFactor = tsneScale[state.mode.title] || 0.5;
+            d.scaleFactor = 0.5;
         }
         d.sprite.scale.x = d.sprite.scale.y = d.scaleFactor;
         if (d.sprite2) {
@@ -819,7 +816,8 @@ function Canvas() {
       return d.active;
     });
 
-    var dimension = Math.min(width, height) * 0.8;
+    var layoutScale = tsneScale[state.mode.title] || 1.0;
+    var dimension = Math.min(width, height) * 0.8 * layoutScale;
 
     inactive.forEach(function (d, i) {
       var r = dimension / 1.4 + Math.random() * 40;
@@ -832,9 +830,12 @@ function Canvas() {
     active.forEach(function (d) {
       var tsneEntry = tsneIndex[state.mode.title][d.id];
       if (tsneEntry) {
-        d.x =
-          tsneEntry[0] * dimension + width / 2 - dimension / 2 + margin.left;
-        d.y = -1 * tsneEntry[1] * dimension - (height / 2) + (dimension / 2);
+        var x_pos = tsneEntry[0] * dimension;
+        var y_pos = tsneEntry[1] * dimension;
+
+        d.x = margin.left + (width - dimension) / 2 + x_pos;
+        d.y = -dimension + (height - dimension) / 2 + y_pos;
+
       } else {
         d.alpha = 0;
         d.x = 0;
@@ -1055,7 +1056,7 @@ function Canvas() {
   }
 
   function nearest(x, y, best, node) {
-    if (!node) return best; // Sicherheitsprüfung, falls quadtree leer ist
+    if (!node) return best; 
     var x1 = node.x1,
       y1 = node.y1,
       x2 = node.x2,
