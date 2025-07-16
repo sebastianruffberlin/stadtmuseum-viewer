@@ -400,6 +400,10 @@ function Canvas() {
 
     years.forEach(function (year) {
       var startX = x(year.key);
+      if (isNaN(startX)) {
+        // Fallback, falls startX ungültig ist
+        startX = 0;
+      }
       var total = year.values.length;
       year.values.sort(function (a, b) {
         return b.keywords.length - a.keywords.length;
@@ -768,13 +772,17 @@ function Canvas() {
     ping();
     sleep = false;
     
+    // Setzt die Domain für die x-Skala bei jeder Projektion neu, um Konsistenz zu gewährleisten
+    x.domain(canvasDomain);
+    canvas.makeScales();
+
     data.forEach(function (d) {
         if (state.mode.title && state.mode.title.toLowerCase() === "karte") {
             d.scaleFactor = 0.8;
         } else if (state.mode.type === "group") {
             d.scaleFactor = 0.9 * (4 / columns); 
         } else {
-            // KORREKTUR: Der 'scale'-Wert aus der config.json steuert nun direkt die Sprite-Größe
+            // Der 'scale'-Wert aus der config.json steuert nun direkt die Sprite-Größe
             d.scaleFactor = tsneScale[state.mode.title] || 0.5;
         }
         d.sprite.scale.x = d.sprite.scale.y = d.scaleFactor;
@@ -811,8 +819,6 @@ function Canvas() {
       return d.active;
     });
 
-    // KORREKTUR: Die Dimension des Layouts ist jetzt fest, um den Bildschirm auszufüllen.
-    // Die Streuung wird durch die Sprite-Größe (scaleFactor) gesteuert.
     var dimension = Math.min(width, height) * 0.8;
 
     inactive.forEach(function (d, i) {
