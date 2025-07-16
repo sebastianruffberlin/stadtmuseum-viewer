@@ -10,7 +10,9 @@
     "timeline": "data/timeline.csv",
     "layouts": [
       {
-        "title": "Time"
+        "title": "Zeit",
+        "type": "group",
+        "groupKey": "year"
       },
       {
         "title": "Similarity",
