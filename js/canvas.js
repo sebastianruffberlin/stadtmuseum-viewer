@@ -191,8 +191,12 @@ function Canvas() {
       (state.mode.type === "group" ? 1 : 0.5);
   };
 
+  // =================================================================
+  // FIX 1: Stellt sicher, dass die Jahre numerisch sortiert werden,
+  // um den NaN-Fehler in der "Time"-Ansicht zu beheben.
+  // =================================================================
   canvas.initGroupLayout = function () {
-    var groupKey = state.mode.groupKey
+    var groupKey = state.mode.groupKey;
     canvasDomain = d3
       .nest()
       .key(function (d) {
@@ -200,7 +204,8 @@ function Canvas() {
       })
       .entries(data.concat(timelineData))
       .sort(function (a, b) {
-        return a.key - b.key;
+        // KORREKTUR: Explizite numerische Sortierung
+        return Number(a.key) - Number(b.key);
       })
       .map(function (d) {
         return d.key;
@@ -827,7 +832,10 @@ function Canvas() {
       if (tsneEntry) {
         d.x =
           tsneEntry[0] * dimension + width / 2 - dimension / 2 + margin.left;
-        d.y = -1 * tsneEntry[1] * dimension;
+        // =================================================================
+        // FIX 2: Zentriert die Y-Position für die Grid- und t-SNE-Ansichten.
+        // =================================================================
+        d.y = -1 * tsneEntry[1] * dimension - (height / 2) + (dimension / 2);
       } else {
         d.alpha = 0;
         d.x = 0;
