@@ -19,6 +19,9 @@ function init() {
   // Registriere den pixi-packer-parser für sharpsheet Format
   if (typeof PIXI !== 'undefined' && PIXI.Loader) {
     PIXI.Loader.registerPlugin(pixiPackerParser(PIXI));
+    console.log('pixi-packer-parser wurde registriert');
+  } else {
+    console.error('PIXI oder PIXI.Loader ist nicht verfügbar!');
   }
   
   canvas = Canvas();
@@ -73,29 +76,44 @@ function init() {
         pixiLoader.load(function(loader, resources) {
           console.log('PIXI Loader finished. Resources:', Object.keys(resources));
           
-          if (resources.spritesheet && resources.spritesheet.textures) {
-            const textures = resources.spritesheet.textures;
-            console.log('Available textures:', Object.keys(textures));
+          // Detaillierte Analyse der geladenen Ressource
+          if (resources.spritesheet) {
+            console.log('Spritesheet resource:', resources.spritesheet);
+            console.log('Spritesheet data:', resources.spritesheet.data);
+            console.log('Spritesheet texture:', resources.spritesheet.texture);
+            console.log('Spritesheet textures:', resources.spritesheet.textures);
             
-            // Erstelle eine Map für schnelleren Zugriff
-            const dataMap = new Map(
-              data
-                .filter(d => d.sprite)
-                .map(d => [d.id, d])
-            );
+            // Prüfe verschiedene mögliche Orte für die Texturen
+            const textures = resources.spritesheet.textures || 
+                            resources.spritesheet.data?.textures ||
+                            resources.spritesheet.spritesheet?.textures;
             
-            // Weise die Texturen den Sprites zu
-            Object.keys(textures).forEach(id => {
-              const item = dataMap.get(id);
-              if (item && item.sprite) {
-                item.sprite.texture = textures[id];
-                console.log(`Texture assigned to sprite: ${id}`);
-              }
-            });
-            
-            canvas.wakeup();
+            if (textures) {
+              console.log('Available textures:', Object.keys(textures));
+              
+              // Erstelle eine Map für schnelleren Zugriff
+              const dataMap = new Map(
+                data
+                  .filter(d => d.sprite)
+                  .map(d => [d.id, d])
+              );
+              
+              // Weise die Texturen den Sprites zu
+              Object.keys(textures).forEach(id => {
+                const item = dataMap.get(id);
+                if (item && item.sprite) {
+                  item.sprite.texture = textures[id];
+                  console.log(`Texture assigned to sprite: ${id}`);
+                }
+              });
+              
+              canvas.wakeup();
+            } else {
+              console.error('Keine Texturen in der Spritesheet-Ressource gefunden!');
+              console.log('Verfügbare Eigenschaften:', Object.keys(resources.spritesheet));
+            }
           } else {
-            console.error('Keine Texturen in der Spritesheet-Ressource gefunden!');
+            console.error('Spritesheet-Ressource nicht gefunden!');
           }
         });
         
