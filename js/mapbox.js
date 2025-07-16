@@ -142,3 +142,4 @@ function Mapbox() {
 
   return mapbox;
 }
+}
