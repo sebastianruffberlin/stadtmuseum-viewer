@@ -32,6 +32,7 @@
   <script src="js/modernizr-custom.js"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="js/mapbox.js"></script>
   <!--[if lt IE 9]>
       <script
         src="http://html5shiv.googlecode.com/svn/trunk/html5.js"
@@ -138,8 +139,13 @@ cpietsch@gmail.com
         </div>
       </div>
     </div>
+</div>
 
     <div class="navi">
+    <div class="time button active" data="time">
+        <span class="icon"></span>zeit
+    </div>
+    <div class="map button" data="map"><span class="icon"></span>karte</div>
     </div>
 
     <div class="infobar ">
@@ -162,15 +168,27 @@ cpietsch@gmail.com
       </div>
     </div>
     <div class="searchbar">
-      <input type="input" name="suche" />
-      <div class="button">
-        <div class="openbutton"></div>
+        <input type="input" name="suche" />
+        <div class="button">
+          <div class="openbutton"></div>
+        </div>
       </div>
+  </div> <div class="navi">
+    <div class="time button active" data="time">
+        <span class="icon"></span>zeit
     </div>
+    <div class="map button" data="map"><span class="icon"></span>karte</div>
   </div>
+
+  <div class="infobar ">
+     </div>
+  
+  <div id="map" class="hide"></div>
 
   <script src="js/sidebars.js"></script>
   <script src="js/viz.js"></script>
 </body>
+
+</html>
 
 </html>
