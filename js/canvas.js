@@ -409,11 +409,11 @@ function Canvas() {
       });
 
       year.values.forEach(function (d, i) {
-        var row = Math.floor(i / columns) + 2;
+        var row = Math.floor(i / columns) + 1;
         d.ii = i;
 
         d.x = startX + (i % columns) * (rangeBand / columns);
-        d.y = (invert ? 1 : -1) * (row * (rangeBand / columns));
+        d.y = (invert ? 1 : -1) * (row * (rangeBand / columns) + 50);
 
         d.x1 = d.x * scale1 + imageSize / 2;
         d.y1 = d.y * scale1 + imageSize / 2;
@@ -869,7 +869,7 @@ function Canvas() {
       return d.y;
     });
 
-    var y = -bottomPadding;
+    var y = state.mode.type === "group" ? -50 : -bottomPadding;
 
     vizContainer
       .call(zoom.translate(translate).event)
