@@ -30,11 +30,14 @@ function Timeline() {
       d3.select(".timeline").remove();
     }
     container = d3.select(".viz").append("div").classed("timeline", true);
-    container.style(
-      "transform",
-      "translate(" + 0 + "px," + (canvas.height() - 30) + "px)"
-    );
-
+    container
+      .style("transform", "translate(0px," + Math.max(canvas.height() - 80, 20) + "px)")
+      .style("position", "absolute")
+      .style("z-index", "200")
+      .style("pointer-events", "auto")
+      .style("display", "block");
+    
+    console.log("✅ Timeline initialized with", timeDomain.length, "entries");
   };
 
   timeline.rescale = function (scale) {
@@ -46,7 +49,11 @@ function Timeline() {
 
   timeline.setDisabled = function (d) {
     disabled = d;
-    container.style("display", disabled ? "none" : "block");
+    if (container) {
+      container
+        .style("display", disabled ? "none" : "block")
+        .style("opacity", disabled ? 0 : 1);
+    }
   };
 
   timeline.update = function (x1, x2, scale, translate) {
@@ -58,17 +65,19 @@ function Timeline() {
         d.pos > -canvas.rangeBand() * scale && d.pos < canvas.width() + 100;
     });
 
-    var timeY =
-      canvas.height() * scale -
-      -1 * translate[1] -
-      canvas.rangeBandImage() * scale;
+    // Korrigierte Timeline-Position
+    var timeY = Math.max(20, 
+      canvas.height() - 80 + translate[1] / scale
+    );
 
     container
       .attr("class", "timeline " + timelineScale(scale * (fontSize / 2)))
       .style("font-size", function () {
-        return fontSize * scale + "px";
+        return Math.max(8, fontSize * scale) + "px";
       })
-      .style("transform", "translate3d(" + 0 + "px," + timeY + "px, 0px)");
+      .style("transform", "translate3d(0px," + timeY + "px, 0px)")
+      .style("display", "block")
+      .style("opacity", 1);
 
     var select = container.selectAll(".container").data(timeDomain);
 
@@ -154,6 +163,19 @@ function Timeline() {
     select.select(".year").style("font-size", fontScaleYear(scale) + "px");
   };
 
+  // Debug-Funktion für Timeline
+  timeline.debug = function() {
+    console.log("Timeline Debug:");
+    console.log("- disabled:", disabled);
+    console.log("- container exists:", !!container);
+    console.log("- timeDomain entries:", timeDomain ? timeDomain.length : 0);
+    console.log("- container display:", container ? container.style("display") : "none");
+    console.log("- container transform:", container ? container.style("transform") : "none");
+    
+    if (timeDomain) {
+      console.log("- sample timeDomain:", timeDomain.slice(0, 3));
+    }
+  };
+
   return timeline;
 }
-
