@@ -15,9 +15,12 @@ var map;
 // Die WebGL- und Mobile-Prüfung wurde entfernt, um die Initialisierung zu erzwingen.
 init();
 
-
 function init() {
-  // Dein restlicher init()-Code bleibt unverändert...
+  // Registriere den pixi-packer-parser für sharpsheet Format
+  if (typeof PIXI !== 'undefined' && PIXI.Loader) {
+    PIXI.Loader.registerPlugin(pixiPackerParser(PIXI));
+  }
+  
   canvas = Canvas();
   search = Search();
   timeline = Timeline();
@@ -63,21 +66,43 @@ function init() {
           })
         }
 
-        LoaderSprites()
-          .progress(function (textures) {
+        // Verwende PIXI.Loader statt LoaderSprites
+        const pixiLoader = new PIXI.Loader();
+        pixiLoader.add("spritesheet", makeUrl(baseUrl.path, config.loader.textures.medium.url));
+        
+        pixiLoader.load(function(loader, resources) {
+          console.log('PIXI Loader finished. Resources:', Object.keys(resources));
+          
+          if (resources.spritesheet && resources.spritesheet.textures) {
+            const textures = resources.spritesheet.textures;
+            console.log('Available textures:', Object.keys(textures));
+            
+            // Erstelle eine Map für schnelleren Zugriff
             const dataMap = new Map(
               data
                 .filter(d => d.sprite)
                 .map(d => [d.id, d])
             );
             
+            // Weise die Texturen den Sprites zu
             Object.keys(textures).forEach(id => {
               const item = dataMap.get(id);
-              if (item) item.sprite.texture = textures[id];
+              if (item && item.sprite) {
+                item.sprite.texture = textures[id];
+                console.log(`Texture assigned to sprite: ${id}`);
+              }
             });
+            
             canvas.wakeup();
-          })
-          .load(makeUrl(baseUrl.path, config.loader.textures.medium.url));
+          } else {
+            console.error('Keine Texturen in der Spritesheet-Ressource gefunden!');
+          }
+        });
+        
+        // Fehlerbehandlung hinzufügen
+        pixiLoader.onError.add(function(error) {
+          console.error('PIXI Loader Error:', error);
+        });
       });
     });
   });
