@@ -1,31 +1,3 @@
-//                            ,--.
-//                ,---,   ,--/  /|               .--.--.
-//        ,---.,`--.' |,---,': / '         ,--, /  /    '.
-//       /__./||   :  ::   : '/ /        ,'_ /||  :  /`. /
-//  ,---.;  ; |:   |  '|   '   ,    .--. |  | :;  |  |--`
-// /___/ \  | ||   :  |'   |  /   ,'_ /| :  . ||  :  ;_
-// \   ;  \ ' |'   '  ;|   ;  ;   |  ' | |  . . \  \    `.
-//  \   \  \: ||   |  |:   '   \  |  | ' |  | |  `----.   \
-//   ;   \  ' .'   :  ;|   |    ' :  | | :  ' ;  __ \  \  |
-//    \   \   '|   |  ''   : |.  \|  ; ' |  | ' /  /`--'  /
-//     \   `  ;'   :  ||   | '_\.':  | : ;  ; |'--'.     /
-//      :   \ |;   |.' '   : |    '  :  `--'   \ `--'---'
-//       '---" '---'   ;   |,'    :  ,      .-./
-//                     '---'       `--`----'
-//                ,---,    ,---,.           .---.    ,---,.,-.----.
-//        ,---.,`--.' |  ,'  .' |          /. ./|  ,'  .' |\    /  \
-//       /__./||   :  :,---.'   |      .--'.  ' ;,---.'   |;   :    \
-//  ,---.;  ; |:   |  '|   |   .'     /__./ \ : ||   |   .'|   | .\ :
-// /___/ \  | ||   :  |:   :  |-, .--'.  '   \' .:   :  |-,.   : |: |
-// \   ;  \ ' |'   '  ;:   |  ;/|/___/ \ |    ' ':   |  ;/||   |  \ :
-//  \   \  \: ||   |  ||   :   .';   \  \;      :|   :   .'|   : .  /
-//   ;   \  ' .'   :  ;|   |  |-, \   ;  `      ||   |  |-,;   | |  \
-//    \   \   '|   |  ''   :  ;/|  .   \    .\  ;'   :  ;/||   | ;\  \
-//     \   `  ;'   :  ||   |    \   \   \   ' \ ||   |    \:   ' | \.'
-//      :   \ |;   |.' |   :   .'    :   '  |--" |   :   .':   : :-'
-//       '---" '---'   |   | ,'       \   \ ;    |   | ,'  |   |.'
-//                     `----'          '---"     `----'    `---'
-
 // christopher pietsch
 // @chrispiecom
 // 2015-2018
@@ -38,16 +10,17 @@ var canvas;
 var search;
 var ping;
 var timeline;
+var map;
 
 if (Modernizr.webgl && !utils.isMobile()) {
   init();
 }
 
-
 function init() {
   canvas = Canvas();
   search = Search();
   timeline = Timeline();
+  map = Mapbox();
   ping = utils.ping();
 
   var baseUrl = utils.getDataBaseUrl();
@@ -74,6 +47,9 @@ function init() {
         tags.init(data, config);
         search.init();
         canvas.init(data, timeline, config);
+        
+        // HINZUGEFÜGT: Daten an das Mapbox-Modul übergeben
+        map.init(data); 
 
         if (config.loader.layouts) {
           initLayouts(config);
@@ -85,17 +61,11 @@ function init() {
           })
         }
 
-        // setTimeout(function () {
-        //   var idx = 102
-        //   canvas.zoomToImage(data[idx], 100)
-        // }, 100);
-
         LoaderSprites()
           .progress(function (textures) {
-            // Create a lookup map for faster access
             const dataMap = new Map(
               data
-                .filter(d => d.sprite) // Ensure sprite exists
+                .filter(d => d.sprite)
                 .map(d => [d.id, d])
             );
             
@@ -105,7 +75,6 @@ function init() {
             });
             canvas.wakeup();
           })
-          //.finished() recalculate sizes
           .load(makeUrl(baseUrl.path, config.loader.textures.medium.url));
       });
     });
@@ -131,7 +100,6 @@ function init() {
   d3.select(".filterReset").on("click", function () {
     canvas.resetZoom(function () {
       tags.reset();
-      //canvas.split();
     })
   });
   d3.select(".filterReset").on("dblclick", function () {
@@ -149,24 +117,10 @@ function init() {
     d3.select(".infobar").classed("sneak", s);
   });
 
-  // d3.selectAll(".navi .button").on("click", function () {
-  //   var that = this;
-  //   var mode = d3.select(this).attr("data");
-  //   canvas.setMode(mode);
-  //   timeline.setDisabled(mode != "time");
-
-  //   d3.selectAll(".navi .button").classed("active", function () {
-  //     return that === this;
-  //   });
-  // });
-
   function initLayouts(config) {
     d3.select(".navi").classed("hide", false);
 
-    //console.log(config.loader.layouts);
     config.loader.layouts.forEach((d, i) => {
-      // d.title = d.title.toLowerCase();
-      // legacy fix for time scales
       if (!d.type && !d.url) {
         d.type = "group"
         d.groupKey = "year"
@@ -192,13 +146,21 @@ function init() {
       .classed("space", (d) => d.space)
       .text((d) => d.title);
 
+    // ANGEPASST: Klick-Logik um Mapbox-Steuerung erweitert
     s.on("click", function (d) {
       canvas.setMode(d);
+      
+      var isMapMode = d.title.toLowerCase() === 'karte';
+      
+      d3.select("#map").classed("hide", !isMapMode);
+      timeline.setDisabled(isMapMode);
+
       d3.selectAll(".navi .button").classed(
         "active",
         (d) => d.title == canvas.getMode().title
       );
     });
+    
     d3.selectAll(".navi .button").classed(
       "active",
       (d) => d.title == config.loader.layouts[0].title
