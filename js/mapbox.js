@@ -1,4 +1,4 @@
-mapboxgl.accessToken = "pk.eyJ1Ijoic2ViYXN0aWFucnVmZiIsImEiOiJjbWQ1b2owZHIwMHI1MnFxdmRmNjJtbncyIn0.EIrTJNvQNVYDvcPVYSYj5g"; // <-- HIER DEINEN EIGENEN TOKEN EINFÜGEN
+mapboxgl.accessToken = "pk.eyJ1Ijoic2ViYXN0aWFucnVmZiIsImEiOiJjbWQ1b2owZHIwMHI1MnFxdmRmNjJtbncyIn0.EIrTJNvQNVYDvcPVYSYj5g";
 
 function Mapbox() {
   var state = {
@@ -14,13 +14,16 @@ function Mapbox() {
   function mapbox() {}
 
   mapbox.init = function (data) {
+    // Wandelt die _Lat und _Lon Spalten aus der CSV in Zahlen um
     data.forEach((d) => {
       d.lat = Number(d._Lat);
       d.lng = Number(d._Lon);
     });
 
+    // Filtert alle Einträge ohne gültige Koordinaten heraus
     validData = data.filter((d) => !isNaN(d.lat) && !isNaN(d.lng));
 
+    // Berechnet den Rahmen (bounding box), der alle Datenpunkte umschließt
     var extent = [
       d3.extent(validData, function (d) {
         return d.lng;
@@ -36,69 +39,71 @@ function Mapbox() {
     ];
     console.log("Map bounds calculated:", bounds);
 
+    // Erstellt die Mapbox-Karte
     map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/light-v9",
       bounds: bounds,
       fitBoundsOptions: { padding: 200 },
-      interactive: false,
+      interactive: false, // Wichtig: Die Karte wird durch die Canvas-Ansicht gesteuert
     });
 
     window.mapbox = map;
 
+    // Diese Funktion wird ausgeführt, sobald die Karte fertig geladen ist
     map.on("load", function () {
-  var geojsonUrl = "data/berlin_bezirke.geojson"; // Dein neuer Dateiname
-  
-  // 1. Datenquelle hinzufügen
-  map.addSource("bezirke", {
-    type: "geojson",
-    data: geojsonUrl
-  });
+      var geojsonUrl = "data/berlin_bezirke.geojson";
+      
+      // 1. Fügt die GeoJSON-Datei als Datenquelle hinzu
+      map.addSource("bezirke", {
+        type: "geojson",
+        data: geojsonUrl
+      });
 
-  // 2. Eine Ebene für die Füllfarbe der Bezirke hinzufügen
-  map.addLayer({
-    id: "bezirke-fill",
-    type: "fill",
-    source: "bezirke",
-    paint: {
-      "fill-color": "#ED6B4C", // Die Füllfarbe (z.B. das Orange)
-      "fill-opacity": 0.2     // Eine leichte Transparenz
-    }
-  });
+      // 2. Fügt eine Ebene für die Füllfarbe der Bezirke hinzu
+      map.addLayer({
+        id: "bezirke-fill",
+        type: "fill",
+        source: "bezirke",
+        paint: {
+          "fill-color": "#ED6B4C",
+          "fill-opacity": 0.2
+        }
+      });
 
-  // 3. Eine Ebene für die Umrandung der Bezirke hinzufügen
-  map.addLayer({
-    id: "bezirke-borders",
-    type: "line",
-    source: "bezirke",
-    paint: {
-      "line-color": "#ED6B4C", // Die Linienfarbe
-      "line-width": 2
-    }
-  });
+      // 3. Fügt eine Ebene für die Umrandung der Bezirke hinzu
+      map.addLayer({
+        id: "bezirke-borders",
+        type: "line",
+        source: "bezirke",
+        paint: {
+          "line-color": "#ED6B4C",
+          "line-width": 2
+        }
+      });
 
-  // 4. Interaktivität: Popup beim Klick auf einen Bezirk
-  map.on('click', 'bezirke-fill', function (e) {
-    // HINWEIS: 'BEZIRKSNAME' ist eine Eigenschaft in der GeoJSON-Datei.
-    // Prüfe in deiner Datei, wie die Spalte mit dem Namen heißt (z.B. 'NAME' oder 'BEZ_NAME') und passe es hier an.
-    new mapboxgl.Popup()
-      .setLngLat(e.lngLat)
-      .setHTML('<h3>' + e.features[0].properties.BEZIRKSNAME + '</h3>')
-      .addTo(map);
-  });
+      // 4. Interaktivität: Zeigt ein Popup beim Klick auf einen Bezirk
+      map.on('click', 'bezirke-fill', function (e) {
+        new mapboxgl.Popup()
+          .setLngLat(e.lngLat)
+          .setHTML('<h3>' + e.features[0].properties.Gemeinde_name + '</h3>') // Korrekter Eigenschaftsname
+          .addTo(map);
+      });
 
-  // Ändere den Mauszeiger zu einem "Pointer", wenn er über einem Bezirk ist
-  map.on('mouseenter', 'bezirke-fill', function () {
-    map.getCanvas().style.cursor = 'pointer';
-  });
-  map.on('mouseleave', 'bezirke-fill', function () {
-    map.getCanvas().style.cursor = '';
-  });
+      // Ändert den Mauszeiger, wenn er über einem Bezirk ist
+      map.on('mouseenter', 'bezirke-fill', function () {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'bezirke-fill', function () {
+        map.getCanvas().style.cursor = '';
+      });
 
-  // Wichtig: Rufe die Projektion auf, nachdem alles geladen ist
-  mapbox.project();
-});
+      // Ruft die Projektion auf, um die Punkte mit der Canvas-Ansicht zu synchronisieren
+      mapbox.project();
+    });
+  };
 
+  // Projiziert die Geodaten auf Pixelkoordinaten für die Canvas-Ansicht
   mapbox.project = function () {
     console.log("Projecting map data to canvas.");
     map.fitBounds(bounds, {
@@ -120,9 +125,11 @@ function Mapbox() {
     initialZoom = map.getZoom();
     initialCenter = map.getCenter();
     
+    // Übergibt die Pixelkoordinaten an die Canvas
     canvas.setMapData(projected);
   };
 
+  // Steuert den Zoom und die Verschiebung der Karte von der Canvas-Ansicht aus
   mapbox.zoom = function (center, mousePos, scale, translate, imageSize) {
     if (!map) return;
     
@@ -141,5 +148,4 @@ function Mapbox() {
   };
 
   return mapbox;
-}
 }
