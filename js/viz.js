@@ -87,17 +87,21 @@ function init() {
           // Detaillierte Analyse der geladenen Ressource
           if (resources.spritesheet) {
             console.log('Spritesheet resource:', resources.spritesheet);
-            console.log('Spritesheet data:', resources.spritesheet.data);
-            console.log('Spritesheet texture:', resources.spritesheet.texture);
-            console.log('Spritesheet textures:', resources.spritesheet.textures);
+            console.log('Spritesheet children:', resources.spritesheet.children);
             
-            // Prüfe verschiedene mögliche Orte für die Texturen
-            const textures = resources.spritesheet.textures || 
-                            resources.spritesheet.data?.textures ||
-                            resources.spritesheet.spritesheet?.textures;
+            // Bei pixi-packer-parser werden die Texturen in den child resources erstellt
+            let allTextures = {};
             
-            if (textures) {
-              console.log('Available textures:', Object.keys(textures));
+            // Prüfe die child resources nach Texturen
+            resources.spritesheet.children.forEach(child => {
+              if (child.textures) {
+                console.log(`Texturen in child ${child.name}:`, Object.keys(child.textures));
+                Object.assign(allTextures, child.textures);
+              }
+            });
+            
+            if (Object.keys(allTextures).length > 0) {
+              console.log('Alle verfügbaren Texturen:', Object.keys(allTextures));
               
               // Erstelle eine Map für schnelleren Zugriff
               const dataMap = new Map(
@@ -107,18 +111,18 @@ function init() {
               );
               
               // Weise die Texturen den Sprites zu
-              Object.keys(textures).forEach(id => {
+              Object.keys(allTextures).forEach(id => {
                 const item = dataMap.get(id);
                 if (item && item.sprite) {
-                  item.sprite.texture = textures[id];
+                  item.sprite.texture = allTextures[id];
                   console.log(`Texture assigned to sprite: ${id}`);
                 }
               });
               
               canvas.wakeup();
             } else {
-              console.error('Keine Texturen in der Spritesheet-Ressource gefunden!');
-              console.log('Verfügbare Eigenschaften:', Object.keys(resources.spritesheet));
+              console.error('Keine Texturen in den child resources gefunden!');
+              console.log('Verfügbare child resources:', resources.spritesheet.children.map(c => c.name));
             }
           } else {
             console.error('Spritesheet-Ressource nicht gefunden!');
