@@ -12,11 +12,12 @@ var ping;
 var timeline;
 var map;
 
-if (Modernizr.webgl && !utils.isMobile()) {
-  init();
-}
+// Die WebGL- und Mobile-Prüfung wurde entfernt, um die Initialisierung zu erzwingen.
+init();
+
 
 function init() {
+  // Dein restlicher init()-Code bleibt unverändert...
   canvas = Canvas();
   search = Search();
   timeline = Timeline();
@@ -26,27 +27,21 @@ function init() {
   var baseUrl = utils.getDataBaseUrl();
   var makeUrl = utils.makeUrl;
 
-  console.log(baseUrl);
-
   d3.json("data/config.json", function (error, config) {
     if (error) {
         console.error("FEHLER: Die Datei 'data/config.json' konnte nicht geladen werden.");
         console.error("Bitte prüfe, ob der Pfad und Dateiname korrekt sind und du einen Webserver verwendest.");
         console.error("Technische Details:", error);
-        // Stoppt die Ausführung, um weitere Fehler zu vermeiden
         return; 
     }
 
-    // Ab hier wissen wir, dass 'config' erfolgreich geladen wurde
     config.baseUrl = baseUrl;
     utils.initConfig(config);
 
     Loader(makeUrl(baseUrl.path, config.loader.timeline)).finished(function (timeline) {
       Loader(makeUrl(baseUrl.path, config.loader.items)).finished(function (data) {
-        console.log(data);
-
+        
         utils.clean(data, config.delimiter);
-        console.log("Daten nach Bereinigung:", data);
         
         if(config.filter && config.filter.type === "crossfilter") {
           tags = Crossfilter();
@@ -56,8 +51,6 @@ function init() {
         tags.init(data, config);
         search.init();
         canvas.init(data, timeline, config);
-        
-        // HINZUGEFÜGT: Daten an das Mapbox-Modul übergeben
         map.init(data); 
 
         if (config.loader.layouts) {
@@ -112,7 +105,6 @@ function init() {
     })
   });
   d3.select(".filterReset").on("dblclick", function () {
-    console.log("dblclick");
     location.reload();
   });
 
@@ -155,18 +147,18 @@ function init() {
       .classed("space", (d) => d.space)
       .text((d) => d.title);
 
-    // ANGEPASST: Klick-Logik um Mapbox-Steuerung erweitert
     s.on("click", function (d) {
+      if (!d || !d.title) {
+        console.error("Layout-Objekt in config.json ist fehlerhaft:", d);
+        return;
+      }
       canvas.setMode(d);
-      
       var isMapMode = d.title.toLowerCase() === 'karte';
-      
       d3.select("#map").classed("hide", !isMapMode);
       timeline.setDisabled(isMapMode);
-
       d3.selectAll(".navi .button").classed(
         "active",
-        (d) => d.title == canvas.getMode().title
+        (navItem) => navItem.title === canvas.getMode().title
       );
     });
     
